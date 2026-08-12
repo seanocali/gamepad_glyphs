@@ -9,9 +9,11 @@ layer observes a device, and share it with each `InputPrompt`:
 
 ```dart
 final inputDevices = InputDeviceTracker();
+final gamepadGlyphs = GamepadGlyphs(inputDevices: inputDevices);
+gamepadGlyphs.startInputTracking();
 
 InputPrompt(
-  input: GamepadInputType.a,
+  input: GamepadInputType.south,
   deviceListenable: inputDevices,
   width: 48,
   height: 48,
@@ -21,10 +23,39 @@ InputPrompt(
 inputDevices.updateHardwareIds(1118, 721);
 inputDevices.updateHardwareIds(1356, 1476);
 inputDevices.updateHardwareIds(null, null);
+
+// Call gamepadGlyphs.stopInputTracking() when the owning screen is disposed.
 ```
 
-The first port includes the semantic input mapping and bundled SVG glyphs.
-Platform-specific input polling will be added on top of this API.
+## Customize mappings
+
+The mapping is centralized in `defaultInputGlyphs`. Create an app-owned table
+when your keyboard bindings differ from the defaults, then pass it to each
+prompt:
+
+```dart
+final glyphs = defaultInputGlyphs.withKeyboardOverrides({
+  GamepadInputType.south: 'Space',
+  GamepadInputType.east: 'Escape',
+});
+
+InputPrompt(
+  input: GamepadInputType.south,
+  deviceListenable: inputDevices,
+  glyphs: glyphs,
+);
+```
+
+Controller mappings remain unchanged by keyboard overrides. For more advanced
+customization, construct an `InputGlyphTable` with customized
+`InputGlyphRow` values.
+
+The Windows implementation listens for raw keyboard and HID controller input,
+with XInput fallback detection for Xbox controllers. Monochrome controller
+glyphs are provided as SVG assets converted from the original Xbox and
+PlayStation private-use font glyphs.
+Other platforms currently retain the manual update API until their native input
+sources are implemented.
 
 ## Getting Started
 

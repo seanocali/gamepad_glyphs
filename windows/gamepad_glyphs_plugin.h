@@ -2,9 +2,13 @@
 #define FLUTTER_PLUGIN_GAMEPAD_GLYPHS_PLUGIN_H_
 
 #include <flutter/method_channel.h>
+#include <flutter/event_sink.h>
 #include <flutter/plugin_registrar_windows.h>
+#include <flutter/standard_method_codec.h>
 
 #include <memory>
+#include <optional>
+#include <array>
 
 namespace gamepad_glyphs {
 
@@ -13,6 +17,7 @@ class GamepadGlyphsPlugin : public flutter::Plugin {
   static void RegisterWithRegistrar(flutter::PluginRegistrarWindows *registrar);
 
   GamepadGlyphsPlugin();
+  explicit GamepadGlyphsPlugin(flutter::PluginRegistrarWindows *registrar);
 
   virtual ~GamepadGlyphsPlugin();
 
@@ -24,6 +29,27 @@ class GamepadGlyphsPlugin : public flutter::Plugin {
   void HandleMethodCall(
       const flutter::MethodCall<flutter::EncodableValue> &method_call,
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
+
+  void SetInputEventSink(
+      std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> sink);
+  void ClearInputEventSink();
+  void EmitInputEvent(unsigned long vendor_id, unsigned long product_id);
+  void EmitKeyboardEvent();
+  void PollXInput();
+  void RegisterInputDevices(HWND window);
+
+ private:
+  std::optional<LRESULT> HandleWindowMessage(HWND hwnd,
+                                             UINT message,
+                                             WPARAM wparam,
+                                             LPARAM lparam);
+
+  flutter::PluginRegistrarWindows *registrar_;
+  int window_proc_delegate_id_;
+  HWND input_window_;
+  bool input_devices_registered_;
+  std::array<unsigned long, 4> xinput_packet_numbers_;
+  std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> input_event_sink_;
 };
 
 }  // namespace gamepad_glyphs

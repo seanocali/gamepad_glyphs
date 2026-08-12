@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
+import 'input_glyph_table.dart';
 import 'input_types.dart';
 
 /// The visual treatment used for keyboard glyphs.
@@ -15,6 +16,7 @@ class InputPrompt extends StatelessWidget {
     this.device,
     this.deviceListenable,
     this.theme = InputPromptTheme.light,
+    this.glyphs = defaultInputGlyphs,
     this.useMonochrome = false,
     this.reverseAxes = false,
     this.mappedKeyboardKey,
@@ -33,6 +35,9 @@ class InputPrompt extends StatelessWidget {
   final ValueListenable<InputDeviceProfile>? deviceListenable;
 
   final InputPromptTheme theme;
+
+  /// The mapping used to resolve semantic inputs to asset names.
+  final InputGlyphTable glyphs;
   final bool useMonochrome;
   final bool reverseAxes;
   final String? mappedKeyboardKey;
@@ -46,6 +51,7 @@ class InputPrompt extends StatelessWidget {
     required GamepadInputType input,
     required InputDeviceProfile device,
     InputPromptTheme theme = InputPromptTheme.light,
+    InputGlyphTable glyphs = defaultInputGlyphs,
     bool useMonochrome = false,
     bool reverseAxes = false,
     String? mappedKeyboardKey,
@@ -53,9 +59,15 @@ class InputPrompt extends StatelessWidget {
     if (input == GamepadInputType.none) return '';
 
     final key = reverseAxes ? _reverseAxis(input) : input;
-    final keyName = device.isKeyboard
-        ? (mappedKeyboardKey ?? _keyboardKeyName(key))
-        : _gamepadKeyName(key, device.model);
+
+    final monochromeFamily = _monochromeFamily(device.model);
+    if (useMonochrome && monochromeFamily != null) {
+      return 'assets/input_prompt/Monochrome/$monochromeFamily/${glyphs.monochromeIndex(key)}.svg';
+    }
+
+    final keyName = device.isKeyboard && mappedKeyboardKey != null
+        ? mappedKeyboardKey
+        : glyphs.glyphName(key, device.model);
     if (keyName == null) return '';
 
     if (device.isKeyboard) {
@@ -68,10 +80,31 @@ class InputPrompt extends StatelessWidget {
     }
 
     final folder = device.assetPrefix.split('/').first;
-    final prefix = device.assetPrefix.substring(
+    var prefix = device.assetPrefix.substring(
       device.assetPrefix.indexOf('/') + 1,
     );
+    // The bundled Series XS collection has one legacy trigger asset under
+    // the shorter "Xbox Series X" prefix.
+    if (device.model == InputDeviceModel.xboxSeriesXs &&
+        keyName == 'LeftTrigger') {
+      prefix = 'Xbox Series X';
+    }
     return 'assets/input_prompt/$folder/$prefix-$keyName.svg';
+  }
+
+  static String? _monochromeFamily(InputDeviceModel model) {
+    switch (model) {
+      case InputDeviceModel.xbox360:
+      case InputDeviceModel.xboxOne:
+      case InputDeviceModel.xboxSeriesXs:
+        return 'Xbox';
+      case InputDeviceModel.ps3:
+      case InputDeviceModel.ps4:
+      case InputDeviceModel.ps5:
+        return 'PlayStation';
+      default:
+        return null;
+    }
   }
 
   @override
@@ -95,6 +128,7 @@ class InputPrompt extends StatelessWidget {
       useMonochrome: useMonochrome,
       reverseAxes: reverseAxes,
       mappedKeyboardKey: mappedKeyboardKey,
+      glyphs: glyphs,
     );
     if (path.isEmpty) return SizedBox(width: width, height: height);
 
@@ -105,6 +139,13 @@ class InputPrompt extends StatelessWidget {
       height: height,
       fit: fit,
       alignment: alignment,
+      colorFilter:
+          useMonochrome && _monochromeFamily(currentDevice.model) != null
+          ? ColorFilter.mode(
+              theme == InputPromptTheme.dark ? Colors.white : Colors.black,
+              BlendMode.srcIn,
+            )
+          : null,
       semanticsLabel: '${currentDevice.model.name} ${input.name} input',
     );
   }
@@ -126,154 +167,5 @@ class InputPrompt extends StatelessWidget {
       default:
         return input;
     }
-  }
-
-  static String? _gamepadKeyName(
-    GamepadInputType input,
-    InputDeviceModel model,
-  ) {
-    switch (model) {
-      case InputDeviceModel.ps3:
-        return _playStationKeyName(input, ps5: false, ps4: false);
-      case InputDeviceModel.ps4:
-        return _playStationKeyName(input, ps5: false, ps4: true);
-      case InputDeviceModel.ps5:
-        return _playStationKeyName(input, ps5: true, ps4: true);
-      case InputDeviceModel.switchPro:
-        switch (input) {
-          case GamepadInputType.leftShoulder:
-            return 'L';
-          case GamepadInputType.rightShoulder:
-            return 'R';
-          case GamepadInputType.leftRightShoulder:
-            return 'LR';
-          case GamepadInputType.leftTrigger:
-            return 'ZL';
-          case GamepadInputType.rightTrigger:
-            return 'ZR';
-          case GamepadInputType.leftRightTrigger:
-            return 'ZLZR';
-          default:
-            return _enumAssetName(input);
-        }
-      case InputDeviceModel.xbox360:
-        switch (input) {
-          case GamepadInputType.view:
-            return 'Back';
-          case GamepadInputType.menu:
-            return 'Start';
-          default:
-            return _enumAssetName(input);
-        }
-      case InputDeviceModel.keyboard:
-        return _keyboardKeyName(input);
-      default:
-        return _enumAssetName(input);
-    }
-  }
-
-  static String _playStationKeyName(
-    GamepadInputType input, {
-    required bool ps4,
-    required bool ps5,
-  }) {
-    switch (input) {
-      case GamepadInputType.a:
-        return 'Cross';
-      case GamepadInputType.b:
-        return 'Circle';
-      case GamepadInputType.x:
-        return 'Square';
-      case GamepadInputType.y:
-        return 'Triangle';
-      case GamepadInputType.leftShoulder:
-        return 'L1';
-      case GamepadInputType.rightShoulder:
-        return 'R1';
-      case GamepadInputType.leftTrigger:
-        return 'L2';
-      case GamepadInputType.rightTrigger:
-        return 'R2';
-      case GamepadInputType.leftThumbstickButton:
-        return 'L3';
-      case GamepadInputType.rightThumbstickButton:
-        return 'R3';
-      case GamepadInputType.leftRightShoulder:
-        return 'L1R1';
-      case GamepadInputType.leftRightTrigger:
-        return 'L2R2';
-      case GamepadInputType.view:
-        return ps5
-            ? 'Create'
-            : ps4
-            ? 'Share'
-            : 'Select';
-      case GamepadInputType.menu:
-        return ps4 || ps5 ? 'Options' : 'Start';
-      default:
-        return _enumAssetName(input);
-    }
-  }
-
-  static String? _keyboardKeyName(GamepadInputType input) {
-    const names = <GamepadInputType, String>{
-      GamepadInputType.a: 'Enter',
-      GamepadInputType.b: 'Back',
-      GamepadInputType.x: 'Space',
-      GamepadInputType.y: '~',
-      GamepadInputType.view: 'Home',
-      GamepadInputType.menu: 'Escape',
-      GamepadInputType.leftShoulder: 'ChevronLeft',
-      GamepadInputType.rightShoulder: 'ChevronRight',
-      GamepadInputType.leftRightShoulder: 'ChevronLeftRight',
-      GamepadInputType.leftTrigger: 'BracketLeft',
-      GamepadInputType.rightTrigger: 'BracketRight',
-      GamepadInputType.leftRightTrigger: 'BracketLeftRight',
-      GamepadInputType.dPad: 'UpDownLeftRight',
-      GamepadInputType.dPadUp: 'Up',
-      GamepadInputType.dPadDown: 'Down',
-      GamepadInputType.dPadLeft: 'Left',
-      GamepadInputType.dPadRight: 'Right',
-      GamepadInputType.dPadUpLeft: 'UpLeft',
-      GamepadInputType.dPadDownRight: 'DownRight',
-      GamepadInputType.dPadDownLeft: 'DownLeft',
-      GamepadInputType.dPadUpRight: 'UpRight',
-      GamepadInputType.dPadUpDown: 'UpDown',
-      GamepadInputType.dPadLeftRight: 'LeftRight',
-      GamepadInputType.leftThumbstick: 'WSAD',
-      GamepadInputType.leftThumbstickClockwise: 'R',
-      GamepadInputType.leftThumbstickCounterclockwise: 'Q',
-      GamepadInputType.leftThumbstickUp: 'W',
-      GamepadInputType.leftThumbstickDown: 'S',
-      GamepadInputType.leftThumbstickLeft: 'A',
-      GamepadInputType.leftThumbstickRight: 'D',
-      GamepadInputType.leftThumbstickUpLeft: 'WS',
-      GamepadInputType.leftThumbstickDownRight: 'SD',
-      GamepadInputType.leftThumbstickDownLeft: 'SA',
-      GamepadInputType.leftThumbstickUpRight: 'WD',
-      GamepadInputType.leftThumbstickUpDown: 'WS',
-      GamepadInputType.leftThumbstickLeftRight: 'AD',
-      GamepadInputType.leftThumbstickButton: 'ChevronLeft',
-      GamepadInputType.rightThumbstick: '8246',
-      GamepadInputType.rightThumbstickClockwise: '9',
-      GamepadInputType.rightThumbstickCounterclockwise: '7',
-      GamepadInputType.rightThumbstickUp: '8',
-      GamepadInputType.rightThumbstickDown: '2',
-      GamepadInputType.rightThumbstickLeft: '4',
-      GamepadInputType.rightThumbstickRight: '6',
-      GamepadInputType.rightThumbstickUpLeft: '84',
-      GamepadInputType.rightThumbstickDownRight: '26',
-      GamepadInputType.rightThumbstickDownLeft: '24',
-      GamepadInputType.rightThumbstickUpRight: '86',
-      GamepadInputType.rightThumbstickUpDown: '82',
-      GamepadInputType.rightThumbstickLeftRight: '46',
-      GamepadInputType.rightThumbstickButton: 'ChevronRight',
-      GamepadInputType.homeButton: 'End',
-    };
-    return names[input];
-  }
-
-  static String _enumAssetName(GamepadInputType input) {
-    return input.name[0].toUpperCase() + input.name.substring(1);
   }
 }

@@ -1,6 +1,7 @@
 import 'package:plugin_platform_interface/plugin_platform_interface.dart';
 
 import 'gamepad_glyphs_method_channel.dart';
+import 'src/input_types.dart';
 
 abstract class GamepadGlyphsPlatform extends PlatformInterface {
   /// Constructs a GamepadGlyphsPlatform.
@@ -26,4 +27,7 @@ abstract class GamepadGlyphsPlatform extends PlatformInterface {
   Future<String?> getPlatformVersion() {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
+
+  /// Emits the most recently observed keyboard or controller device.
+  Stream<InputDeviceEvent> get inputEvents => const Stream.empty();
 }

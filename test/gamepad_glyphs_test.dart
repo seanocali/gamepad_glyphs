@@ -9,6 +9,9 @@ class MockGamepadGlyphsPlatform
     implements GamepadGlyphsPlatform {
   @override
   Future<String?> getPlatformVersion() => Future.value('42');
+
+  @override
+  Stream<InputDeviceEvent> get inputEvents => const Stream.empty();
 }
 
 void main() {

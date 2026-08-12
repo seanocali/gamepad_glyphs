@@ -1,11 +1,38 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart';
+
+/// A native input event used to update [InputDeviceTracker].
+class InputDeviceEvent {
+  const InputDeviceEvent({this.vendorId, this.productId});
+
+  final int? vendorId;
+  final int? productId;
+
+  InputDeviceProfile get profile =>
+      InputDeviceProfile.fromHardwareIds(vendorId, productId);
+
+  factory InputDeviceEvent.fromMap(Map<Object?, Object?> event) {
+    final vendorId = event['vendorId'];
+    final productId = event['productId'];
+    return InputDeviceEvent(
+      vendorId: vendorId is num ? vendorId.toInt() : null,
+      productId: productId is num ? productId.toInt() : null,
+    );
+  }
+
+  Map<String, int?> toMap() => <String, int?>{
+    'vendorId': vendorId,
+    'productId': productId,
+  };
+}
 
 /// Semantic inputs that can be used by an [InputPrompt].
 enum GamepadInputType {
-  a,
-  b,
-  x,
-  y,
+  north,
+  south,
+  east,
+  west,
   view,
   menu,
   leftShoulder,
@@ -164,11 +191,41 @@ class InputDeviceTracker extends ValueNotifier<InputDeviceProfile> {
     InputDeviceProfile initial = const InputDeviceProfile.keyboard(),
   }) : super(initial);
 
+  StreamSubscription<InputDeviceEvent>? _inputSubscription;
+
+  int? vendorId;
+  int? productId;
+
   void updateDevice(InputDeviceProfile device) {
+    vendorId = null;
+    productId = null;
     value = device;
   }
 
   void updateHardwareIds(int? vendorId, int? productId) {
-    updateDevice(InputDeviceProfile.fromHardwareIds(vendorId, productId));
+    this.vendorId = vendorId;
+    this.productId = productId;
+    value = InputDeviceProfile.fromHardwareIds(vendorId, productId);
+  }
+
+  /// Binds this tracker to native input events, replacing any prior binding.
+  void bind(Stream<InputDeviceEvent> events) {
+    unbind();
+    _inputSubscription = events.listen(
+      (event) => updateHardwareIds(event.vendorId, event.productId),
+    );
+  }
+
+  /// Stops listening to native input events.
+  void unbind() {
+    final subscription = _inputSubscription;
+    _inputSubscription = null;
+    subscription?.cancel();
+  }
+
+  @override
+  void dispose() {
+    unbind();
+    super.dispose();
   }
 }

@@ -27,7 +27,20 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
-    - assets/input_prompt/
+    - assets/input_prompt/Amazon/
+    - assets/input_prompt/Facebook/
+    - assets/input_prompt/Google/
+    - assets/input_prompt/Keyboard/Dark/
+    - assets/input_prompt/Keyboard/Light/
+    - assets/input_prompt/Keyboard/MonochromeDark/
+    - assets/input_prompt/Keyboard/MonochromeLight/
+    - assets/input_prompt/Monochrome/PlayStation/
+    - assets/input_prompt/Monochrome/Xbox/
+    - assets/input_prompt/Microsoft/
+    - assets/input_prompt/Nintendo/
+    - assets/input_prompt/OUYA/
+    - assets/input_prompt/Sony/
+    - assets/input_prompt/Valve/
 
   # This section identifies this Flutter project as a plugin project.
   # The 'pluginClass' specifies the class (in Java, Kotlin, Swift, Objective-C, etc.)

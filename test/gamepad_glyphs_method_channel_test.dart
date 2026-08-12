@@ -18,9 +18,32 @@ void main() {
   tearDown(() {
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(channel, null);
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockStreamHandler(
+          const EventChannel('gamepad_glyphs/input_events'),
+          null,
+        );
   });
 
   test('getPlatformVersion', () async {
     expect(await platform.getPlatformVersion(), '42');
+  });
+
+  test('inputEvents maps native device events', () async {
+    final inputChannel = const EventChannel('gamepad_glyphs/input_events');
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockStreamHandler(
+          inputChannel,
+          MockStreamHandler.inline(
+            onListen: (arguments, events) {
+              events.success(<String, int>{'vendorId': 1118, 'productId': 721});
+              events.endOfStream();
+            },
+          ),
+        );
+
+    final event = await platform.inputEvents.first;
+    expect(event.vendorId, 1118);
+    expect(event.productId, 721);
   });
 }
