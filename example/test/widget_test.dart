@@ -4,8 +4,8 @@ import 'package:flutter/widgets.dart';
 import 'package:gamepad_glyphs_example/main.dart';
 
 void main() {
-  testWidgets('shows the InputPrompt example', (WidgetTester tester) async {
-    await tester.pumpWidget(const InputPromptExampleApp());
+  testWidgets('shows the GamepadGlyph example', (WidgetTester tester) async {
+    await tester.pumpWidget(const GamepadGlyphExampleApp());
     expect(
       find.textContaining('Alternate between keyboard input'),
       findsOneWidget,
@@ -30,7 +30,7 @@ void main() {
       find.byWidgetPredicate(
         (widget) => widget is FittedBox && widget.fit == BoxFit.fitWidth,
       ),
-      findsOneWidget,
+      findsNWidgets(2),
     );
   });
 }

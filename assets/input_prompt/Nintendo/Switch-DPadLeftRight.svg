@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Transparent combined Joy-Con horizontal directional-button glyph. -->
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 100 100">
+  <defs>
+    <g id="button">
+      <circle r="18" fill="#1B1B1B"/>
+      <circle r="16" fill="#313131"/>
+      <circle r="13" fill="#626262"/>
+    </g>
+    <path id="up" fill="#4F4F4F" d="M0-13 11 9H-11Z"/>
+  </defs>
+
+  <g transform="translate(20 50) rotate(-90)">
+    <use xlink:href="#button"/>
+    <use xlink:href="#up"/>
+  </g>
+  <g transform="translate(80 50) rotate(90)">
+    <use xlink:href="#button"/>
+    <use xlink:href="#up"/>
+  </g>
+</svg>

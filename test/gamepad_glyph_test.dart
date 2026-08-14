@@ -1,0 +1,608 @@
+import 'dart:io';
+
+import 'package:flutter_test/flutter_test.dart';
+import 'package:gamepad_glyphs/gamepad_glyphs.dart';
+
+void main() {
+  test('maps the example action to each device family', () {
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.south,
+        device: const InputDeviceProfile.keyboard(),
+      ),
+      'assets/input_prompt/Keyboard/Light/Enter.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.south,
+        device: const InputDeviceProfile(GamepadDevice.xboxOne),
+      ),
+      'assets/input_prompt/Microsoft/Xbox One-A.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.south,
+        device: const InputDeviceProfile(GamepadDevice.ps4),
+      ),
+      'assets/input_prompt/Sony/PS4-Cross.svg',
+    );
+  });
+
+  test('uses controller-agnostic face-button semantics', () {
+    expect(
+      defaultInputGlyphs.glyphName(
+        GamepadInputType.north,
+        GamepadDevice.xboxOne,
+      ),
+      'Y',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(
+        GamepadInputType.north,
+        GamepadDevice.ps4,
+      ),
+      'Triangle',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(
+        GamepadInputType.south,
+        GamepadDevice.ps4,
+      ),
+      'Cross',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(GamepadInputType.east, GamepadDevice.ps4),
+      'Circle',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(GamepadInputType.west, GamepadDevice.ps4),
+      'Square',
+    );
+  });
+
+  test('maps hardware IDs and keyboard fallback', () {
+    expect(
+      InputDeviceProfile.fromHardwareIds(1118, 702).type,
+      GamepadDevice.xbox360,
+    );
+    expect(
+      InputDeviceProfile.fromHardwareIds(1356, 3302).type,
+      GamepadDevice.ps5,
+    );
+    expect(
+      InputDeviceProfile.fromHardwareIds(10462, 1).type,
+      GamepadDevice.steamG1,
+    );
+    expect(
+      InputDeviceProfile.fromHardwareIds(null, null).type,
+      GamepadDevice.keyboard,
+    );
+    expect(
+      InputDeviceProfile.fromHardwareIds(9999, 1).type,
+      GamepadDevice.xboxOne,
+    );
+    expect(
+      InputDeviceProfile.fromHardwareIds(9999, 1).isRecognized,
+      isFalse,
+    );
+  });
+
+  test('maps Steam-G1 inputs to available Steam-G1 glyphs', () {
+    const steamG1 = InputDeviceProfile(GamepadDevice.steamG1);
+
+    expect(
+      GamepadGlyph.assetPathFor(input: GamepadInputType.south, device: steamG1),
+      'assets/input_prompt/Valve/Steam-G1-A.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftShoulder,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LB.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.dPadUpLeft,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-DPadUpLeft.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.dPadUpDown,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-DPadUpDown.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.dPadLeftRight,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-DPadLeftRight.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.dPadDownRight,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-DPadDownRight.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.dPadDownLeft,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-DPadDownLeft.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.dPadUpRight,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-DPadUpRight.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftRightShoulder,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftRightShoulder.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftRightTrigger,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftRightTrigger.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.rightThumbstick,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-Trackpad.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.rightThumbstickClockwise,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-TrackpadClockwise.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.rightThumbstickCounterclockwise,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-TrackpadCounterClockwise.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.rightThumbstickUpLeft,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-TrackpadUpLeft.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.rightThumbstickUpRight,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-TrackpadUpRight.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.rightThumbstickDownLeft,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-TrackpadDownLeft.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.rightThumbstickDownRight,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-TrackpadDownRight.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.rightThumbstickUpDown,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-TrackpadUpDown.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.rightThumbstickLeftRight,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-TrackpadLeftRight.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.homeButton,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-Steam Button.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstick,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstick.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickClockwise,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickRotationClockwise.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickCounterclockwise,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickRotationCounterclockwise.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickUp,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickUp.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickDown,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickDown.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickLeft,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickLeft.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickRight,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickRight.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickUpLeft,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickUpLeft.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickDownRight,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickDownRight.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickDownLeft,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickLeftDown.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickUpRight,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickUpRight.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickLeftRight,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickLeftRight.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickUpDown,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickUpDown.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickButton,
+        device: steamG1,
+      ),
+      'assets/input_prompt/Valve/Steam-G1-LeftThumbstickClick.svg',
+    );
+  });
+
+  test('tracker publishes the latest device profile', () {
+    final tracker = InputDeviceTracker();
+    expect(tracker.value.type, GamepadDevice.keyboard);
+
+    tracker.updateHardwareIds(1118, 721);
+    expect(tracker.value.type, GamepadDevice.xboxOne);
+
+    tracker.updateHardwareIds(1356, 1476);
+    expect(tracker.value.type, GamepadDevice.ps4);
+    tracker.dispose();
+  });
+
+  test('tracker can consume platform input events', () async {
+    final tracker = InputDeviceTracker();
+    tracker.bind(
+      Stream<InputDeviceEvent>.value(
+        const InputDeviceEvent(vendorId: 1356, productId: 1476),
+      ),
+    );
+
+    await Future<void>.delayed(Duration.zero);
+    expect(tracker.value.type, GamepadDevice.ps4);
+    tracker.dispose();
+  });
+
+  test('reverses composite axes and supports keyboard overrides', () {
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickLeftRight,
+        device: const InputDeviceProfile.keyboard(),
+        reverseAxes: true,
+      ),
+      'assets/input_prompt/Keyboard/Light/WS.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.south,
+        device: const InputDeviceProfile.keyboard(),
+        mappedKeyboardKey: 'Space',
+      ),
+      'assets/input_prompt/Keyboard/Light/Space.svg',
+    );
+  });
+
+  test('resolves monochrome keyboard glyph assets', () {
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.south,
+        device: const InputDeviceProfile.keyboard(),
+        useMonochrome: true,
+      ),
+      'assets/input_prompt/Keyboard/MonochromeLight/Enter.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.south,
+        device: const InputDeviceProfile.keyboard(),
+        theme: GamepadGlyphTheme.dark,
+        useMonochrome: true,
+      ),
+      'assets/input_prompt/Keyboard/MonochromeDark/Enter.svg',
+    );
+  });
+
+  test('resolves controller monochrome glyph assets', () {
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.south,
+        device: const InputDeviceProfile(GamepadDevice.xboxOne),
+        useMonochrome: true,
+      ),
+      'assets/input_prompt/Monochrome/Xbox/0.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.south,
+        device: const InputDeviceProfile(GamepadDevice.ps5),
+        useMonochrome: true,
+      ),
+      'assets/input_prompt/Monochrome/PlayStation/0.svg',
+    );
+  });
+
+  test('allows keyboard mappings to be customized in one table', () {
+    final customGlyphs = defaultInputGlyphs.withKeyboardOverrides({
+      GamepadInputType.south: 'Space',
+      GamepadInputType.east: 'Escape',
+    });
+
+    expect(
+      customGlyphs.glyphName(GamepadInputType.south, GamepadDevice.keyboard),
+      'Space',
+    );
+    expect(
+      customGlyphs.glyphName(GamepadInputType.south, GamepadDevice.xboxOne),
+      'A',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(
+        GamepadInputType.south,
+        GamepadDevice.keyboard,
+      ),
+      'Enter',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.south,
+        device: const InputDeviceProfile.keyboard(),
+        glyphs: customGlyphs,
+      ),
+      'assets/input_prompt/Keyboard/Light/Space.svg',
+    );
+  });
+
+  test('uses available Nintendo Switch glyph names', () {
+    const switchDevice = InputDeviceProfile(GamepadDevice.switchJoyCon);
+
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.view,
+        device: switchDevice,
+      ),
+      'assets/input_prompt/Nintendo/Switch-Minus.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.menu,
+        device: switchDevice,
+      ),
+      'assets/input_prompt/Nintendo/Switch-Plus.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.rightThumbstick,
+        device: switchDevice,
+      ),
+      'assets/input_prompt/Nintendo/Switch-RightThumbStick.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickButton,
+        device: switchDevice,
+      ),
+      'assets/input_prompt/Nintendo/Switch-LeftThumbStickButton.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.rightThumbstickButton,
+        device: switchDevice,
+      ),
+      'assets/input_prompt/Nintendo/Switch-RightThumbStickButton.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.dPadUpLeft,
+        device: switchDevice,
+      ),
+      'assets/input_prompt/Nintendo/Switch-DPadUpLeft.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.dPadDownRight,
+        device: switchDevice,
+      ),
+      'assets/input_prompt/Nintendo/Switch-DPadDownRight.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.dPadUpDown,
+        device: switchDevice,
+      ),
+      'assets/input_prompt/Nintendo/Switch-DPadUpDown.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.dPadLeftRight,
+        device: switchDevice,
+      ),
+      'assets/input_prompt/Nintendo/Switch-DPadLeftRight.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.dPad,
+        device: switchDevice,
+      ),
+      'assets/input_prompt/Nintendo/Switch-DPad.svg',
+    );
+  });
+
+  test('uses available Home button glyph names', () {
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.homeButton,
+        device: const InputDeviceProfile(GamepadDevice.xbox360),
+      ),
+      'assets/input_prompt/Microsoft/Xbox 360-Home.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.homeButton,
+        device: const InputDeviceProfile(GamepadDevice.xboxOne),
+      ),
+      'assets/input_prompt/Microsoft/Xbox One-Home.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.homeButton,
+        device: const InputDeviceProfile(GamepadDevice.ps5),
+      ),
+      'assets/input_prompt/Sony/PS5-Home.svg',
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.homeButton,
+        device: const InputDeviceProfile(GamepadDevice.wii),
+      ),
+      'assets/input_prompt/Nintendo/Wii-Home.svg',
+    );
+  });
+
+  test('does not request missing keyboard composite glyph assets', () {
+    const keyboard = InputDeviceProfile.keyboard();
+
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.dPadUpLeft,
+        device: keyboard,
+      ),
+      isEmpty,
+    );
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickDownRight,
+        device: keyboard,
+      ),
+      isEmpty,
+    );
+  });
+
+  test('loads the derived PS3 diagonal thumbstick glyph', () {
+    expect(
+      GamepadGlyph.assetPathFor(
+        input: GamepadInputType.leftThumbstickUpLeft,
+        device: const InputDeviceProfile(GamepadDevice.ps3),
+      ),
+      'assets/input_prompt/Sony/PS3-LeftThumbstickUpLeft.svg',
+    );
+  });
+
+  test('every default mapping points to an existing bundled asset', () {
+    final missing = <String>[];
+    const auditedModels = <GamepadDevice>[
+      GamepadDevice.keyboard,
+      GamepadDevice.xbox360,
+      GamepadDevice.xboxOne,
+      GamepadDevice.xboxSeriesXs,
+      GamepadDevice.ps3,
+      GamepadDevice.ps4,
+      GamepadDevice.ps5,
+      GamepadDevice.switchJoyCon,
+      GamepadDevice.steamG1,
+    ];
+    for (final entry in defaultInputGlyphs.rows.entries) {
+      for (final model in auditedModels) {
+        final path = GamepadGlyph.assetPathFor(
+          input: entry.key,
+          device: InputDeviceProfile(model),
+        );
+        if (path.isEmpty) continue;
+
+        final asset = File(path);
+        if (!asset.existsSync() || asset.lengthSync() == 0) {
+          missing.add('${entry.key.name} / ${model.name} -> $path');
+        }
+      }
+    }
+    expect(missing, isEmpty, reason: missing.join('\n'));
+  });
+}

@@ -8,7 +8,6 @@
 
 #include <memory>
 #include <optional>
-#include <array>
 
 namespace gamepad_glyphs {
 
@@ -35,7 +34,7 @@ class GamepadGlyphsPlugin : public flutter::Plugin {
   void ClearInputEventSink();
   void EmitInputEvent(unsigned long vendor_id, unsigned long product_id);
   void EmitKeyboardEvent();
-  void PollXInput();
+  void PollGameControllers();
   void RegisterInputDevices(HWND window);
 
  private:
@@ -48,7 +47,6 @@ class GamepadGlyphsPlugin : public flutter::Plugin {
   int window_proc_delegate_id_;
   HWND input_window_;
   bool input_devices_registered_;
-  std::array<unsigned long, 4> xinput_packet_numbers_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> input_event_sink_;
 };
 

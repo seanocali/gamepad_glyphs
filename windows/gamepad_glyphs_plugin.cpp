@@ -2,17 +2,21 @@
 
 // This must be included before many other Windows headers.
 #include <windows.h>
-#include <Xinput.h>
 
 #include <VersionHelpers.h>
+
+#include <winrt/Windows.Foundation.Collections.h>
+#include <winrt/Windows.Gaming.Input.h>
 
 #include <flutter/event_channel.h>
 #include <flutter/method_channel.h>
 #include <flutter/plugin_registrar_windows.h>
 #include <flutter/standard_method_codec.h>
 
+#include <algorithm>
+#include <cmath>
+#include <cstdio>
 #include <cstdint>
-#include <cstdlib>
 #include <memory>
 #include <optional>
 #include <sstream>
@@ -22,8 +26,9 @@ namespace gamepad_glyphs {
 
 namespace {
 
-constexpr UINT_PTR kXInputTimerId = 0x4759;
-constexpr UINT kXInputTimerIntervalMs = 50;
+constexpr UINT_PTR kControllerPollingTimerId = 0x4759;
+constexpr UINT kControllerPollingIntervalMs = 50;
+constexpr double kGamepadAxisDeadZone = 0.1;
 
 class InputEventStreamHandler
     : public flutter::StreamHandler<flutter::EncodableValue> {
@@ -83,16 +88,14 @@ GamepadGlyphsPlugin::GamepadGlyphsPlugin()
     : registrar_(nullptr),
       window_proc_delegate_id_(0),
       input_window_(nullptr),
-      input_devices_registered_(false),
-      xinput_packet_numbers_{} {}
+      input_devices_registered_(false) {}
 
 GamepadGlyphsPlugin::GamepadGlyphsPlugin(
     flutter::PluginRegistrarWindows* registrar)
     : registrar_(registrar),
       window_proc_delegate_id_(0),
       input_window_(nullptr),
-      input_devices_registered_(false),
-      xinput_packet_numbers_{} {
+      input_devices_registered_(false) {
   window_proc_delegate_id_ = registrar_->RegisterTopLevelWindowProcDelegate(
       [this](HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
         return HandleWindowMessage(hwnd, message, wparam, lparam);
@@ -102,7 +105,7 @@ GamepadGlyphsPlugin::GamepadGlyphsPlugin(
 
 GamepadGlyphsPlugin::~GamepadGlyphsPlugin() {
   if (input_window_ != nullptr) {
-    KillTimer(input_window_, kXInputTimerId);
+    KillTimer(input_window_, kControllerPollingTimerId);
   }
   if (registrar_ != nullptr && window_proc_delegate_id_ != 0) {
     registrar_->UnregisterTopLevelWindowProcDelegate(window_proc_delegate_id_);
@@ -143,6 +146,10 @@ void GamepadGlyphsPlugin::EmitInputEvent(unsigned long vendor_id,
     return;
   }
 
+  std::fprintf(stderr, "gamepad_glyphs event: controller %lu:%lu\n",
+               vendor_id, product_id);
+  std::fflush(stderr);
+
   flutter::EncodableMap event;
   event[flutter::EncodableValue("vendorId")] =
       flutter::EncodableValue(static_cast<int64_t>(vendor_id));
@@ -155,6 +162,9 @@ void GamepadGlyphsPlugin::EmitKeyboardEvent() {
   if (input_event_sink_ == nullptr) {
     return;
   }
+
+  std::fprintf(stderr, "gamepad_glyphs event: keyboard\n");
+  std::fflush(stderr);
 
   flutter::EncodableMap event;
   event[flutter::EncodableValue("vendorId")] = flutter::EncodableValue();
@@ -171,8 +181,8 @@ std::optional<LRESULT> GamepadGlyphsPlugin::HandleWindowMessage(
     RegisterInputDevices(hwnd);
   }
 
-  if (message == WM_TIMER && wparam == kXInputTimerId) {
-    PollXInput();
+  if (message == WM_TIMER && wparam == kControllerPollingTimerId) {
+    PollGameControllers();
     return std::nullopt;
   }
 
@@ -199,24 +209,7 @@ std::optional<LRESULT> GamepadGlyphsPlugin::HandleWindowMessage(
     if ((raw_input->data.keyboard.Flags & RI_KEY_BREAK) == 0) {
       EmitKeyboardEvent();
     }
-    return std::nullopt;
   }
-
-  if (raw_input->header.dwType != RIM_TYPEHID) {
-    return std::nullopt;
-  }
-
-  RID_DEVICE_INFO device_info{};
-  device_info.cbSize = sizeof(device_info);
-  UINT device_info_size = sizeof(device_info);
-  if (GetRawInputDeviceInfo(raw_input->header.hDevice, RIDI_DEVICEINFO,
-                            &device_info, &device_info_size) ==
-          static_cast<UINT>(-1) ||
-      device_info.dwType != RIM_TYPEHID) {
-    return std::nullopt;
-  }
-
-  EmitInputEvent(device_info.hid.dwVendorId, device_info.hid.dwProductId);
   return std::nullopt;
 }
 
@@ -225,13 +218,10 @@ void GamepadGlyphsPlugin::RegisterInputDevices(HWND window) {
     return;
   }
 
-  RAWINPUTDEVICE devices[] = {
-      // Keyboard.
-      {0x01, 0x06, RIDEV_INPUTSINK, window},
-      // Joystick and gamepad HID devices.
-      {0x01, 0x04, RIDEV_INPUTSINK, window},
-      {0x01, 0x05, RIDEV_INPUTSINK, window},
-  };
+  // Raw Input is used only for keyboard key-down events. Controllers are
+  // polled through Windows.Gaming.Input so changing HID motion, battery, and
+  // status reports cannot masquerade as user input.
+  RAWINPUTDEVICE devices[] = {{0x01, 0x06, RIDEV_INPUTSINK, window}};
 
   if (!RegisterRawInputDevices(devices, ARRAYSIZE(devices),
                                sizeof(RAWINPUTDEVICE))) {
@@ -240,41 +230,56 @@ void GamepadGlyphsPlugin::RegisterInputDevices(HWND window) {
 
   input_window_ = window;
   input_devices_registered_ = true;
-  SetTimer(input_window_, kXInputTimerId, kXInputTimerIntervalMs, nullptr);
+  SetTimer(input_window_, kControllerPollingTimerId,
+           kControllerPollingIntervalMs, nullptr);
 }
 
-void GamepadGlyphsPlugin::PollXInput() {
-  for (DWORD index = 0; index < XUSER_MAX_COUNT; ++index) {
-    XINPUT_STATE state{};
-    const DWORD result = XInputGetState(index, &state);
-    if (result != ERROR_SUCCESS) {
-      xinput_packet_numbers_[index] = 0;
-      continue;
-    }
+void GamepadGlyphsPlugin::PollGameControllers() {
+  using namespace winrt::Windows::Gaming::Input;
 
-    if (state.dwPacketNumber == xinput_packet_numbers_[index]) {
-      continue;
-    }
-    xinput_packet_numbers_[index] = state.dwPacketNumber;
+  try {
+    for (const auto& raw_controller :
+         RawGameController::RawGameControllers()) {
+      bool has_input = false;
 
-    const auto& gamepad = state.Gamepad;
-    const bool has_button_input = gamepad.wButtons != 0;
-    const bool has_trigger_input =
-        gamepad.bLeftTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD ||
-        gamepad.bRightTrigger > XINPUT_GAMEPAD_TRIGGER_THRESHOLD;
-    const bool has_left_stick_input =
-        std::abs(gamepad.sThumbLX) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE ||
-        std::abs(gamepad.sThumbLY) > XINPUT_GAMEPAD_LEFT_THUMB_DEADZONE;
-    const bool has_right_stick_input =
-        std::abs(gamepad.sThumbRX) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE ||
-        std::abs(gamepad.sThumbRY) > XINPUT_GAMEPAD_RIGHT_THUMB_DEADZONE;
+      const auto gamepad = Gamepad::FromGameController(raw_controller);
+      if (gamepad != nullptr) {
+        const auto reading = gamepad.GetCurrentReading();
+        has_input =
+            reading.Buttons != GamepadButtons::None ||
+            reading.LeftTrigger > kGamepadAxisDeadZone ||
+            reading.RightTrigger > kGamepadAxisDeadZone ||
+            std::abs(reading.LeftThumbstickX) > kGamepadAxisDeadZone ||
+            std::abs(reading.LeftThumbstickY) > kGamepadAxisDeadZone ||
+            std::abs(reading.RightThumbstickX) > kGamepadAxisDeadZone ||
+            std::abs(reading.RightThumbstickY) > kGamepadAxisDeadZone;
+      } else {
+        // This follows the original .NET InputPollingService: raw-only
+        // controllers count pressed buttons and D-pad switches, but not raw
+        // axes whose neutral values and semantics vary by controller.
+        winrt::com_array<bool> buttons(raw_controller.ButtonCount());
+        winrt::com_array<GameControllerSwitchPosition> switches(
+            raw_controller.SwitchCount());
+        winrt::com_array<double> axes(raw_controller.AxisCount());
+        raw_controller.GetCurrentReading(buttons, switches, axes);
 
-    if (has_button_input || has_trigger_input || has_left_stick_input ||
-        has_right_stick_input) {
-      // XInput does not expose the physical USB IDs. XInput devices are Xbox
-      // controllers, so use the Xbox One profile as the safe glyph family.
-      EmitInputEvent(1118, 721);
+        has_input =
+            std::any_of(buttons.begin(), buttons.end(),
+                        [](bool pressed) { return pressed; }) ||
+            std::any_of(switches.begin(), switches.end(), [](auto position) {
+              return position != GameControllerSwitchPosition::Center;
+            });
+      }
+
+      if (has_input) {
+        EmitInputEvent(raw_controller.HardwareVendorId(),
+                       raw_controller.HardwareProductId());
+        return;
+      }
     }
+  } catch (const winrt::hresult_error&) {
+    // A controller can disconnect between enumeration and reading. The next
+    // polling tick will enumerate the current device list again.
   }
 }
 

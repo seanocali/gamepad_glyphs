@@ -3,17 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:gamepad_glyphs/gamepad_glyphs.dart';
 
 void main() {
-  runApp(const InputPromptExampleApp());
+  runApp(const GamepadGlyphExampleApp());
 }
 
-class InputPromptExampleApp extends StatefulWidget {
-  const InputPromptExampleApp({super.key});
+class GamepadGlyphExampleApp extends StatefulWidget {
+  const GamepadGlyphExampleApp({super.key});
 
   @override
-  State<InputPromptExampleApp> createState() => _InputPromptExampleAppState();
+  State<GamepadGlyphExampleApp> createState() => _GamepadGlyphExampleAppState();
 }
 
-class _InputPromptExampleAppState extends State<InputPromptExampleApp> {
+class _GamepadGlyphExampleAppState extends State<GamepadGlyphExampleApp> {
   final _inputDevices = InputDeviceTracker();
   late final GamepadGlyphs _gamepadGlyphs;
   bool _useMonochrome = false;
@@ -41,7 +41,7 @@ class _InputPromptExampleAppState extends State<InputPromptExampleApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'InputPrompt example',
+      title: 'GamepadGlyph example',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.indigo),
       ),
@@ -161,7 +161,7 @@ class _DemoContent extends StatelessWidget {
                         onPressed: () => onDeviceSelected(1356, 3302),
                       ),
                       _SimulationButton(
-                        label: 'Simulate Nintendo Switch Pro Input',
+                        label: 'Simulate Nintendo Switch Joy-Con Input',
                         onPressed: () => onDeviceSelected(1406, 8201),
                       ),
                       _SimulationButton(
@@ -223,6 +223,52 @@ class _DemoContent extends StatelessWidget {
             ],
           ),
         ),
+        Container(
+          margin: const EdgeInsets.only(bottom: 20),
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.55),
+            border: Border.all(color: Colors.indigo, width: 2),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: Column(
+            children: [
+              const Text(
+                'Switch Joy-Con thumbstick buttons',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Column(
+                    children: [
+                      GamepadGlyph(
+                        input: GamepadInputType.leftThumbstickButton,
+                        forceDeviceType: GamepadDevice.switchJoyCon,
+                        width: 140,
+                        height: 140,
+                      ),
+                      Text('Left'),
+                    ],
+                  ),
+                  const SizedBox(width: 40),
+                  const Column(
+                    children: [
+                      GamepadGlyph(
+                        input: GamepadInputType.rightThumbstickButton,
+                        forceDeviceType: GamepadDevice.switchJoyCon,
+                        width: 140,
+                        height: 140,
+                      ),
+                      Text('Right'),
+                    ],
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
       ],
     );
   }
@@ -264,7 +310,7 @@ class _PromptRow extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: InputPrompt(
+          child: GamepadGlyph(
             input: input,
             deviceListenable: deviceListenable,
             useMonochrome: useMonochrome,
@@ -316,14 +362,15 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
   static const _semanticColumnWidth = 180.0;
   static const _deviceColumnWidth = 100.0;
 
-  static const _devices = <(String, InputDeviceModel)>[
-    ('Xbox 360', InputDeviceModel.xbox360),
-    ('Xbox One', InputDeviceModel.xboxOne),
-    ('PS3', InputDeviceModel.ps3),
-    ('PS4', InputDeviceModel.ps4),
-    ('PS5', InputDeviceModel.ps5),
-    ('Switch Pro', InputDeviceModel.switchPro),
-    ('Keyboard', InputDeviceModel.keyboard),
+  static const _devices = <(String, GamepadDevice)>[
+    ('Xbox 360', GamepadDevice.xbox360),
+    ('Xbox One', GamepadDevice.xboxOne),
+    ('PS3', GamepadDevice.ps3),
+    ('PS4', GamepadDevice.ps4),
+    ('PS5', GamepadDevice.ps5),
+    ('Switch Joy-Con', GamepadDevice.switchJoyCon),
+    ('Steam-G1', GamepadDevice.steamG1),
+    ('Keyboard', GamepadDevice.keyboard),
   ];
 
   @override
@@ -346,79 +393,109 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
         ),
       ),
       body: LayoutBuilder(
-        builder: (context, constraints) => Scrollbar(
-          controller: _scrollController,
-          child: SingleChildScrollView(
-            controller: _scrollController,
-            child: SizedBox(
-              width: constraints.maxWidth,
-              child: FittedBox(
-                fit: BoxFit.fitWidth,
-                alignment: Alignment.topLeft,
-                child: DataTable(
-                  columnSpacing: 16,
-                  horizontalMargin: 12,
-                  dataRowMinHeight: 120,
-                  dataRowMaxHeight: 120,
-                  headingRowColor: WidgetStatePropertyAll(
-                    Colors.indigo.withValues(alpha: 0.12),
-                  ),
-                  columns: [
-                    const DataColumn(
-                      label: SizedBox(
+        builder: (context, constraints) {
+          final headerColumns = [
+            const DataColumn(
+              label: SizedBox(
+                width: _semanticColumnWidth,
+                child: Text('Semantic input', textAlign: TextAlign.center),
+              ),
+            ),
+            ..._devices.map(
+              (device) => DataColumn(
+                label: SizedBox(
+                  width: _deviceColumnWidth,
+                  child: Text(device.$1, textAlign: TextAlign.center),
+                ),
+              ),
+            ),
+          ];
+          final bodyColumns = [
+            const DataColumn(
+              label: SizedBox(width: _semanticColumnWidth, height: 0),
+            ),
+            ..._devices.map(
+              (_) => const DataColumn(
+                label: SizedBox(width: _deviceColumnWidth, height: 0),
+              ),
+            ),
+          ];
+          final bodyRows = rows
+              .map(
+                (entry) => DataRow(
+                  cells: [
+                    DataCell(
+                      SizedBox(
                         width: _semanticColumnWidth,
                         child: Text(
-                          'Semantic input',
+                          entry.key.name,
                           textAlign: TextAlign.center,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
                       ),
                     ),
                     ..._devices.map(
-                      (device) => DataColumn(
-                        label: SizedBox(
+                      (device) => DataCell(
+                        SizedBox(
                           width: _deviceColumnWidth,
-                          child: Text(device.$1, textAlign: TextAlign.center),
+                          child: _MapGlyphCell(
+                            input: entry.key,
+                            device: device.$2,
+                            glyphName: entry.value.glyphName(device.$2),
+                          ),
                         ),
                       ),
                     ),
                   ],
-                  rows: rows
-                      .map(
-                        (entry) => DataRow(
-                          cells: [
-                            DataCell(
-                              SizedBox(
-                                width: _semanticColumnWidth,
-                                child: Text(
-                                  entry.key.name,
-                                  textAlign: TextAlign.center,
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ),
-                            ),
-                            ..._devices.map(
-                              (device) => DataCell(
-                                SizedBox(
-                                  width: _deviceColumnWidth,
-                                  child: _MapGlyphCell(
-                                    input: entry.key,
-                                    device: device.$2,
-                                    glyphName: entry.value.glyphName(device.$2),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      )
-                      .toList(),
+                ),
+              )
+              .toList();
+
+          return Column(
+            children: [
+              SizedBox(
+                width: constraints.maxWidth,
+                child: FittedBox(
+                  fit: BoxFit.fitWidth,
+                  alignment: Alignment.topLeft,
+                  child: DataTable(
+                    columnSpacing: 16,
+                    horizontalMargin: 12,
+                    headingRowColor: WidgetStatePropertyAll(
+                      Colors.indigo.withValues(alpha: 0.12),
+                    ),
+                    columns: headerColumns,
+                    rows: const [],
+                  ),
                 ),
               ),
-            ),
-          ),
-        ),
+              Expanded(
+                child: Scrollbar(
+                  controller: _scrollController,
+                  child: SingleChildScrollView(
+                    controller: _scrollController,
+                    child: SizedBox(
+                      width: constraints.maxWidth,
+                      child: FittedBox(
+                        fit: BoxFit.fitWidth,
+                        alignment: Alignment.topLeft,
+                        child: DataTable(
+                          columnSpacing: 16,
+                          horizontalMargin: 12,
+                          dataRowMinHeight: 120,
+                          dataRowMaxHeight: 120,
+                          headingRowHeight: 0,
+                          columns: bodyColumns,
+                          rows: bodyRows,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -432,27 +509,30 @@ class _MapGlyphCell extends StatelessWidget {
   });
 
   final GamepadInputType input;
-  final InputDeviceModel device;
+  final GamepadDevice device;
   final String? glyphName;
 
   @override
   Widget build(BuildContext context) {
     if (glyphName == null) return const Text('—');
 
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 6),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          InputPrompt(
-            input: input,
-            device: InputDeviceProfile(device),
-            width: 42,
-            height: 42,
-          ),
-          Text(glyphName!, style: const TextStyle(fontSize: 11)),
-        ],
-      ),
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        GamepadGlyph(
+          input: input,
+          device: InputDeviceProfile(device),
+          width: 42,
+          height: 42,
+        ),
+        Text(
+          glyphName!,
+          maxLines: 1,
+          softWrap: false,
+          overflow: TextOverflow.clip,
+          style: const TextStyle(fontSize: 10),
+        ),
+      ],
     );
   }
 }

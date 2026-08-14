@@ -26,8 +26,7 @@ class InputDeviceEvent {
     'productId': productId,
   };
 }
-
-/// Semantic inputs that can be used by an [InputPrompt].
+/// Semantic inputs that can be used by a [GamepadGlyph].
 enum GamepadInputType {
   north,
   south,
@@ -84,8 +83,8 @@ enum GamepadInputType {
   none,
 }
 
-/// The controller families currently represented by the bundled glyphs.
-enum InputDeviceModel {
+/// Selects whether a [GamepadGlyph] follows input or always uses one family.
+enum GamepadDevice {
   keyboard,
   xbox360,
   xboxOne,
@@ -94,24 +93,25 @@ enum InputDeviceModel {
   ps4,
   ps5,
   wii,
-  switchPro,
-  steam,
+  switchJoyCon,
+  steamG1,
 }
 
 /// Identifies the device whose input was most recently observed.
 class InputDeviceProfile {
-  const InputDeviceProfile(this.model);
+  const InputDeviceProfile(this.type, {this.isRecognized = true});
 
-  const InputDeviceProfile.keyboard() : this(InputDeviceModel.keyboard);
+  const InputDeviceProfile.keyboard() : this(GamepadDevice.keyboard);
 
-  final InputDeviceModel model;
+  final GamepadDevice type;
+  final bool isRecognized;
 
-  bool get isKeyboard => model == InputDeviceModel.keyboard;
+  bool get isKeyboard => type == GamepadDevice.keyboard;
 
   /// Converts the USB vendor/product IDs used by the original control.
   ///
-  /// Unknown devices intentionally fall back to the keyboard profile, which
-  /// matches the original control's safe fallback behavior.
+  /// Unknown non-keyboard devices are marked unrecognized so a glyph can use
+  /// its configured default device family.
   factory InputDeviceProfile.fromHardwareIds(int? vendorId, int? productId) {
     if (vendorId == null) return const InputDeviceProfile.keyboard();
 
@@ -119,70 +119,75 @@ class InputDeviceProfile {
       case 1118: // Microsoft
         switch (productId) {
           case 702:
-            return const InputDeviceProfile(InputDeviceModel.xbox360);
+            return const InputDeviceProfile(GamepadDevice.xbox360);
           case 721:
           case 733:
           case 746:
-            return const InputDeviceProfile(InputDeviceModel.xboxOne);
+            return const InputDeviceProfile(GamepadDevice.xboxOne);
           default:
-            return const InputDeviceProfile(InputDeviceModel.xboxOne);
+            return const InputDeviceProfile(GamepadDevice.xboxOne);
         }
       case 1356: // Sony
         switch (productId) {
           case 3302:
-            return const InputDeviceProfile(InputDeviceModel.ps5);
+            return const InputDeviceProfile(GamepadDevice.ps5);
           case 1476:
           case 2976:
           case 6604:
-            return const InputDeviceProfile(InputDeviceModel.ps4);
+            return const InputDeviceProfile(GamepadDevice.ps4);
           default:
-            return const InputDeviceProfile(InputDeviceModel.ps4);
+            return const InputDeviceProfile(GamepadDevice.ps4);
         }
       case 1406: // Nintendo
         switch (productId) {
           case 774:
-            return const InputDeviceProfile(InputDeviceModel.wii);
+            return const InputDeviceProfile(GamepadDevice.wii);
           default:
-            return const InputDeviceProfile(InputDeviceModel.switchPro);
+            return const InputDeviceProfile(GamepadDevice.switchJoyCon);
         }
       case 10462: // Valve
-        return const InputDeviceProfile(InputDeviceModel.steam);
+        return const InputDeviceProfile(GamepadDevice.steamG1);
       default:
-        return const InputDeviceProfile.keyboard();
+        return const InputDeviceProfile(
+          GamepadDevice.xboxOne,
+          isRecognized: false,
+        );
     }
   }
 
   String get assetPrefix {
-    switch (model) {
-      case InputDeviceModel.keyboard:
+    switch (type) {
+      case GamepadDevice.keyboard:
         return 'Keyboard';
-      case InputDeviceModel.xbox360:
+      case GamepadDevice.xbox360:
         return 'Microsoft/Xbox 360';
-      case InputDeviceModel.xboxOne:
+      case GamepadDevice.xboxOne:
         return 'Microsoft/Xbox One';
-      case InputDeviceModel.xboxSeriesXs:
+      case GamepadDevice.xboxSeriesXs:
         return 'Microsoft/Xbox Series XS';
-      case InputDeviceModel.ps3:
+      case GamepadDevice.ps3:
         return 'Sony/PS3';
-      case InputDeviceModel.ps4:
+      case GamepadDevice.ps4:
         return 'Sony/PS4';
-      case InputDeviceModel.ps5:
+      case GamepadDevice.ps5:
         return 'Sony/PS5';
-      case InputDeviceModel.wii:
+      case GamepadDevice.wii:
         return 'Nintendo/Wii';
-      case InputDeviceModel.switchPro:
+      case GamepadDevice.switchJoyCon:
         return 'Nintendo/Switch';
-      case InputDeviceModel.steam:
-        return 'Valve/Steam';
+      case GamepadDevice.steamG1:
+        return 'Valve/Steam-G1';
     }
   }
 
   @override
   bool operator ==(Object other) =>
-      other is InputDeviceProfile && other.model == model;
+      other is InputDeviceProfile &&
+      other.type == type &&
+      other.isRecognized == isRecognized;
 
   @override
-  int get hashCode => model.hashCode;
+  int get hashCode => Object.hash(type, isRecognized);
 }
 
 /// Mutable last-input state that can be shared by multiple prompts.

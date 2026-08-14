@@ -4,27 +4,35 @@ Display keyboard and controller glyphs based on the last input device.
 
 ## Initial usage
 
-Create one tracker for the prompts in a screen, update it when your input
-layer observes a device, and share it with each `InputPrompt`:
+The default output type is automatic. The glyphs share one internal input
+listener, which starts only while an automatic glyph is mounted:
 
 ```dart
-final inputDevices = InputDeviceTracker();
-final gamepadGlyphs = GamepadGlyphs(inputDevices: inputDevices);
-gamepadGlyphs.startInputTracking();
-
-InputPrompt(
+GamepadGlyph(
   input: GamepadInputType.south,
-  deviceListenable: inputDevices,
   width: 48,
   height: 48,
 );
+```
 
-// Keyboard, Xbox One, or PlayStation 4 can also be selected directly:
-inputDevices.updateHardwareIds(1118, 721);
-inputDevices.updateHardwareIds(1356, 1476);
-inputDevices.updateHardwareIds(null, null);
+To always show one specific device family, choose `forceDeviceType`. This does not
+start the internal input listener:
 
-// Call gamepadGlyphs.stopInputTracking() when the owning screen is disposed.
+```dart
+GamepadGlyph(
+  input: GamepadInputType.south,
+  forceDeviceType: GamepadDevice.ps5,
+);
+```
+
+When automatic input comes from an unrecognized controller, the default
+display is Xbox One. Override that fallback with `defaultDeviceType`.
+
+```dart
+GamepadGlyph(
+  input: GamepadInputType.south,
+  defaultDeviceType: GamepadDevice.ps5,
+);
 ```
 
 ## Customize mappings
@@ -39,9 +47,8 @@ final glyphs = defaultInputGlyphs.withKeyboardOverrides({
   GamepadInputType.east: 'Escape',
 });
 
-InputPrompt(
+GamepadGlyph(
   input: GamepadInputType.south,
-  deviceListenable: inputDevices,
   glyphs: glyphs,
 );
 ```

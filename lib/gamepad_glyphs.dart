@@ -1,7 +1,7 @@
 import 'gamepad_glyphs_platform_interface.dart';
 import 'src/input_types.dart';
 export 'src/input_glyph_table.dart';
-export 'src/input_prompt.dart';
+export 'src/gamepad_glyph.dart';
 export 'src/input_types.dart';
 
 class GamepadGlyphs {
