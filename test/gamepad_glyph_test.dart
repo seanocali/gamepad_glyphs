@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:gamepad_glyphs/gamepad_glyphs.dart';
 
@@ -10,7 +11,7 @@ void main() {
         input: GamepadInputType.south,
         device: const InputDeviceProfile.keyboard(),
       ),
-      'assets/input_prompt/Keyboard/Light/Enter.svg',
+      'assets/input_prompt/Keyboard/Light/Space.svg',
     );
     expect(
       GamepadGlyph.assetPathFor(
@@ -57,6 +58,87 @@ void main() {
     expect(
       defaultInputGlyphs.glyphName(GamepadInputType.west, GamepadDevice.ps4),
       'Square',
+    );
+  });
+
+  test('uses the default keyboard mapping', () {
+    const keyboard = GamepadDevice.keyboard;
+
+    expect(defaultInputGlyphs.glyphName(GamepadInputType.south, keyboard), 'Space');
+    expect(defaultInputGlyphs.glyphName(GamepadInputType.east, keyboard), 'C');
+    expect(defaultInputGlyphs.glyphName(GamepadInputType.west, keyboard), 'R');
+    expect(defaultInputGlyphs.glyphName(GamepadInputType.north, keyboard), 'X');
+    expect(
+      defaultInputGlyphs.glyphName(GamepadInputType.leftShoulder, keyboard),
+      'Q',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(GamepadInputType.rightShoulder, keyboard),
+      'G',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(GamepadInputType.leftTrigger, keyboard),
+      'Divide',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(GamepadInputType.rightTrigger, keyboard),
+      'Enter',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(
+        GamepadInputType.leftThumbstickButton,
+        keyboard,
+      ),
+      'Shift',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(
+        GamepadInputType.rightThumbstickButton,
+        keyboard,
+      ),
+      'V',
+    );
+    expect(defaultInputGlyphs.glyphName(GamepadInputType.view, keyboard), 'RightShift');
+    expect(defaultInputGlyphs.glyphName(GamepadInputType.menu, keyboard), 'Enter');
+    expect(defaultInputGlyphs.glyphName(GamepadInputType.dPadUp, keyboard), 'Up');
+    expect(defaultInputGlyphs.glyphName(GamepadInputType.dPadDown, keyboard), 'Down');
+    expect(defaultInputGlyphs.glyphName(GamepadInputType.dPadLeft, keyboard), 'Left');
+    expect(defaultInputGlyphs.glyphName(GamepadInputType.dPadRight, keyboard), 'Right');
+    expect(defaultInputGlyphs.glyphName(GamepadInputType.homeButton, keyboard), 'F1');
+    expect(
+      defaultInputGlyphs.glyphName(
+        GamepadInputType.rightThumbstickUpLeft,
+        keyboard,
+      ),
+      '84',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(
+        GamepadInputType.rightThumbstickUpRight,
+        keyboard,
+      ),
+      '86',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(
+        GamepadInputType.rightThumbstickDownLeft,
+        keyboard,
+      ),
+      '42',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(
+        GamepadInputType.rightThumbstickDownRight,
+        keyboard,
+      ),
+      '62',
+    );
+    expect(
+      defaultInputGlyphs.glyphName(
+        GamepadInputType.rightThumbstickUpDown,
+        keyboard,
+      ),
+      '82',
     );
   });
 
@@ -378,7 +460,7 @@ void main() {
         device: const InputDeviceProfile.keyboard(),
         useMonochrome: true,
       ),
-      'assets/input_prompt/Keyboard/MonochromeLight/Enter.svg',
+      'assets/input_prompt/Keyboard/MonochromeLight/Space.svg',
     );
     expect(
       GamepadGlyph.assetPathFor(
@@ -387,7 +469,7 @@ void main() {
         theme: GamepadGlyphTheme.dark,
         useMonochrome: true,
       ),
-      'assets/input_prompt/Keyboard/MonochromeDark/Enter.svg',
+      'assets/input_prompt/Keyboard/MonochromeDark/Space.svg',
     );
   });
 
@@ -412,13 +494,13 @@ void main() {
 
   test('allows keyboard mappings to be customized in one table', () {
     final customGlyphs = defaultInputGlyphs.withKeyboardOverrides({
-      GamepadInputType.south: 'Space',
+      GamepadInputType.south: 'Z',
       GamepadInputType.east: 'Escape',
     });
 
     expect(
       customGlyphs.glyphName(GamepadInputType.south, GamepadDevice.keyboard),
-      'Space',
+      'Z',
     );
     expect(
       customGlyphs.glyphName(GamepadInputType.south, GamepadDevice.xboxOne),
@@ -429,7 +511,7 @@ void main() {
         GamepadInputType.south,
         GamepadDevice.keyboard,
       ),
-      'Enter',
+      'Space',
     );
     expect(
       GamepadGlyph.assetPathFor(
@@ -437,8 +519,29 @@ void main() {
         device: const InputDeviceProfile.keyboard(),
         glyphs: customGlyphs,
       ),
-      'assets/input_prompt/Keyboard/Light/Space.svg',
+      'assets/input_prompt/Keyboard/Light/Z.svg',
     );
+  });
+
+  testWidgets('renders an empty box for a missing custom glyph', (tester) async {
+    final customGlyphs = defaultInputGlyphs.withKeyboardOverrides({
+      GamepadInputType.south: 'DoesNotExist',
+    });
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: GamepadGlyph(
+          input: GamepadInputType.south,
+          forceDeviceType: GamepadDevice.keyboard,
+          glyphs: customGlyphs,
+          width: 48,
+          height: 48,
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(GamepadGlyph), findsOneWidget);
   });
 
   test('uses available Nintendo Switch glyph names', () {
@@ -547,7 +650,7 @@ void main() {
     );
   });
 
-  test('does not request missing keyboard composite glyph assets', () {
+  test('resolves keyboard diagonal glyph assets', () {
     const keyboard = InputDeviceProfile.keyboard();
 
     expect(
@@ -555,14 +658,14 @@ void main() {
         input: GamepadInputType.dPadUpLeft,
         device: keyboard,
       ),
-      isEmpty,
+      'assets/input_prompt/Keyboard/Light/UpLeft.svg',
     );
     expect(
       GamepadGlyph.assetPathFor(
         input: GamepadInputType.leftThumbstickDownRight,
         device: keyboard,
       ),
-      isEmpty,
+      'assets/input_prompt/Keyboard/Light/SD.svg',
     );
   });
 

@@ -128,7 +128,7 @@ const defaultInputGlyphs = InputGlyphTable(
     GamepadInputType.north: InputGlyphRow(
       assetName: 'Y',
       monochromeIndex: 3,
-      keyboard: '~',
+      keyboard: 'X',
       steamG1: 'Y',
       ps3: 'Triangle',
       ps4: 'Triangle',
@@ -137,7 +137,7 @@ const defaultInputGlyphs = InputGlyphTable(
     GamepadInputType.south: InputGlyphRow(
       assetName: 'A',
       monochromeIndex: 0,
-      keyboard: 'Enter',
+      keyboard: 'Space',
       steamG1: 'A',
       ps3: 'Cross',
       ps4: 'Cross',
@@ -146,7 +146,7 @@ const defaultInputGlyphs = InputGlyphTable(
     GamepadInputType.east: InputGlyphRow(
       assetName: 'B',
       monochromeIndex: 1,
-      keyboard: 'Back',
+      keyboard: 'C',
       steamG1: 'B',
       ps3: 'Circle',
       ps4: 'Circle',
@@ -155,7 +155,7 @@ const defaultInputGlyphs = InputGlyphTable(
     GamepadInputType.west: InputGlyphRow(
       assetName: 'X',
       monochromeIndex: 2,
-      keyboard: 'Space',
+      keyboard: 'R',
       steamG1: 'X',
       ps3: 'Square',
       ps4: 'Square',
@@ -163,7 +163,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.view: InputGlyphRow(
       assetName: 'View',
-      keyboard: 'Home',
+      keyboard: 'RightShift',
       xbox360: 'Back',
       ps3: 'Select',
       ps4: 'Share',
@@ -173,7 +173,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.menu: InputGlyphRow(
       assetName: 'Menu',
-      keyboard: 'Escape',
+      keyboard: 'Enter',
       xbox360: 'Start',
       ps3: 'Start',
       ps4: 'Options',
@@ -183,7 +183,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.leftShoulder: InputGlyphRow(
       assetName: 'LeftShoulder',
-      keyboard: 'ChevronLeft',
+      keyboard: 'Q',
       ps3: 'L1',
       ps4: 'L1',
       ps5: 'L1',
@@ -192,7 +192,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.rightShoulder: InputGlyphRow(
       assetName: 'RightShoulder',
-      keyboard: 'ChevronRight',
+      keyboard: 'G',
       ps3: 'R1',
       ps4: 'R1',
       ps5: 'R1',
@@ -210,7 +210,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.leftTrigger: InputGlyphRow(
       assetName: 'LeftTrigger',
-      keyboard: 'BracketLeft',
+      keyboard: 'Divide',
       ps3: 'L2',
       ps4: 'L2',
       ps5: 'L2',
@@ -219,7 +219,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.rightTrigger: InputGlyphRow(
       assetName: 'RightTrigger',
-      keyboard: 'BracketRight',
+      keyboard: 'Enter',
       ps3: 'R2',
       ps4: 'R2',
       ps5: 'R2',
@@ -267,26 +267,26 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.dPadUpLeft: InputGlyphRow(
       assetName: 'DPadUpLeft',
-      keyboard: '',
+      keyboard: 'UpLeft',
       xboxSeriesXs: 'DPadLeftUp',
       switchJoyCon: 'DPadUpLeft',
       steamG1: 'DPadUpLeft',
     ),
     GamepadInputType.dPadDownRight: InputGlyphRow(
       assetName: 'DPadDownRight',
-      keyboard: '',
+      keyboard: 'DownRight',
       switchJoyCon: 'DPadDownRight',
       steamG1: 'DPadDownRight',
     ),
     GamepadInputType.dPadDownLeft: InputGlyphRow(
       assetName: 'DPadDownLeft',
-      keyboard: '',
+      keyboard: 'DownLeft',
       switchJoyCon: 'DPadDownLeft',
       steamG1: 'DPadDownLeft',
     ),
     GamepadInputType.dPadUpRight: InputGlyphRow(
       assetName: 'DPadUpRight',
-      keyboard: '',
+      keyboard: 'UpRight',
       xboxSeriesXs: 'DPadUpRight',
       switchJoyCon: 'DPadUpRight',
       steamG1: 'DPadUpRight',
@@ -340,7 +340,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.leftThumbstickUpLeft: InputGlyphRow(
       assetName: 'LeftThumbstickUpLeft',
-      keyboard: 'WS',
+      keyboard: 'WA',
       ps3: 'LeftThumbstickUpLeft',
       ps4: 'LeftThumbstickUpLeft',
       ps5: 'LeftThumbstickUpLeft',
@@ -348,7 +348,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.leftThumbstickDownRight: InputGlyphRow(
       assetName: 'LeftThumbstickDownRight',
-      keyboard: '',
+      keyboard: 'SD',
       ps3: 'LeftThumbstickDownRight',
       ps4: 'LeftThumbstickDownRight',
       ps5: 'LeftThumbstickDownRight',
@@ -356,7 +356,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.leftThumbstickDownLeft: InputGlyphRow(
       assetName: 'LeftThumbstickDownLeft',
-      keyboard: '',
+      keyboard: 'SA',
       ps3: 'LeftThumbstickDownLeft',
       ps4: 'LeftThumbstickDownLeft',
       ps5: 'LeftThumbstickDownLeft',
@@ -364,7 +364,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.leftThumbstickUpRight: InputGlyphRow(
       assetName: 'LeftThumbstickUpRight',
-      keyboard: '',
+      keyboard: 'WD',
       ps3: 'LeftThumbstickUpRight',
       ps4: 'LeftThumbstickUpRight',
       ps5: 'LeftThumbstickUpRight',
@@ -382,7 +382,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.leftThumbstickButton: InputGlyphRow(
       assetName: 'LeftThumbstickButton',
-      keyboard: 'ChevronLeft',
+      keyboard: 'Shift',
       ps3: 'L3',
       ps4: 'L3',
       ps5: 'L3',
@@ -427,7 +427,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.rightThumbstickUpLeft: InputGlyphRow(
       assetName: 'RightThumbstickUpLeft',
-      keyboard: '',
+      keyboard: '84',
       ps3: 'RightThumbstickUpLeft',
       ps4: 'RightThumbstickUpLeft',
       ps5: 'RightThumbstickUpLeft',
@@ -435,7 +435,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.rightThumbstickDownRight: InputGlyphRow(
       assetName: 'RightThumbstickDownRight',
-      keyboard: '',
+      keyboard: '62',
       ps3: 'RightThumbstickDownRight',
       ps4: 'RightThumbstickDownRight',
       ps5: 'RightThumbstickDownRight',
@@ -443,7 +443,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.rightThumbstickDownLeft: InputGlyphRow(
       assetName: 'RightThumbstickDownLeft',
-      keyboard: '',
+      keyboard: '42',
       ps3: 'RightThumbstickDownLeft',
       ps4: 'RightThumbstickDownLeft',
       ps5: 'RightThumbstickDownLeft',
@@ -451,7 +451,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.rightThumbstickUpRight: InputGlyphRow(
       assetName: 'RightThumbstickUpRight',
-      keyboard: '',
+      keyboard: '86',
       ps3: 'RightThumbstickUpRight',
       ps4: 'RightThumbstickUpRight',
       ps5: 'RightThumbstickUpRight',
@@ -464,12 +464,12 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.rightThumbstickUpDown: InputGlyphRow(
       assetName: 'RightThumbstickUpDown',
-      keyboard: '',
+      keyboard: '82',
       steamG1: 'TrackpadUpDown',
     ),
     GamepadInputType.rightThumbstickButton: InputGlyphRow(
       assetName: 'RightThumbstickButton',
-      keyboard: 'ChevronRight',
+      keyboard: 'V',
       ps3: 'R3',
       ps4: 'R3',
       ps5: 'R3',
@@ -478,7 +478,7 @@ const defaultInputGlyphs = InputGlyphTable(
     ),
     GamepadInputType.homeButton: InputGlyphRow(
       assetName: 'HomeButton',
-      keyboard: 'End',
+      keyboard: 'F1',
       xbox360: 'Home',
       xboxOne: 'Home',
       xboxSeriesXs: '',

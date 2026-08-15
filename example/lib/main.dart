@@ -223,52 +223,6 @@ class _DemoContent extends StatelessWidget {
             ],
           ),
         ),
-        Container(
-          margin: const EdgeInsets.only(bottom: 20),
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.55),
-            border: Border.all(color: Colors.indigo, width: 2),
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Column(
-            children: [
-              const Text(
-                'Switch Joy-Con thumbstick buttons',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 12),
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Column(
-                    children: [
-                      GamepadGlyph(
-                        input: GamepadInputType.leftThumbstickButton,
-                        forceDeviceType: GamepadDevice.switchJoyCon,
-                        width: 140,
-                        height: 140,
-                      ),
-                      Text('Left'),
-                    ],
-                  ),
-                  const SizedBox(width: 40),
-                  const Column(
-                    children: [
-                      GamepadGlyph(
-                        input: GamepadInputType.rightThumbstickButton,
-                        forceDeviceType: GamepadDevice.switchJoyCon,
-                        width: 140,
-                        height: 140,
-                      ),
-                      Text('Right'),
-                    ],
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
       ],
     );
   }

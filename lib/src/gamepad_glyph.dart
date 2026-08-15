@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
 import 'input_glyph_table.dart';
@@ -244,24 +245,44 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
       return SizedBox(width: widget.width, height: widget.height);
     }
 
-    return SvgPicture.asset(
-      path,
-      package: 'gamepad_glyphs',
-      width: widget.width,
-      height: widget.height,
-      fit: widget.fit,
-      alignment: widget.alignment,
-      colorFilter:
-          widget.useMonochrome &&
-              GamepadGlyph._monochromeFamily(currentDevice.type) != null
-          ? ColorFilter.mode(
-              widget.theme == GamepadGlyphTheme.dark
-                  ? Colors.white
-                  : Colors.black,
-              BlendMode.srcIn,
-            )
-          : null,
-      semanticsLabel: '${currentDevice.type.name} ${widget.input.name} input',
+    return FutureBuilder<Uint8List?>(
+      future: _loadAsset(path),
+      builder: (context, snapshot) {
+        final bytes = snapshot.data;
+        if (bytes == null) {
+          return SizedBox(width: widget.width, height: widget.height);
+        }
+
+        return SvgPicture.memory(
+          bytes,
+          width: widget.width,
+          height: widget.height,
+          fit: widget.fit,
+          alignment: widget.alignment,
+          errorBuilder: (context, error, stackTrace) =>
+              SizedBox(width: widget.width, height: widget.height),
+          colorFilter:
+              widget.useMonochrome &&
+                  GamepadGlyph._monochromeFamily(currentDevice.type) != null
+              ? ColorFilter.mode(
+                  widget.theme == GamepadGlyphTheme.dark
+                      ? Colors.white
+                      : Colors.black,
+                  BlendMode.srcIn,
+                )
+              : null,
+          semanticsLabel: '${currentDevice.type.name} ${widget.input.name} input',
+        );
+      },
     );
+  }
+
+  static Future<Uint8List?> _loadAsset(String path) async {
+    try {
+      final data = await rootBundle.load('packages/gamepad_glyphs/$path');
+      return data.buffer.asUint8List();
+    } catch (_) {
+      return null;
+    }
   }
 }
