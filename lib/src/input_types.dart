@@ -9,8 +9,6 @@ class InputDeviceEvent {
   final int? vendorId;
   final int? productId;
 
-  String get device => deviceFromHardwareIds(vendorId, productId);
-
   factory InputDeviceEvent.fromMap(Map<Object?, Object?> event) {
     final vendorId = event['vendorId'];
     final productId = event['productId'];
@@ -27,14 +25,25 @@ class InputDeviceEvent {
 }
 
 /// Converts native USB vendor/product IDs to an asset folder name.
-String deviceFromHardwareIds(int? vendorId, int? productId) {
+String deviceFromHardwareIds(
+  int? vendorId,
+  int? productId, {
+
+  /// Additional exact VID/PID mappings. These override built-in mappings.
+  Map<int, Map<int, String>> additionalDevicesMap = const {},
+}) {
+  final customDevice = vendorId == null || productId == null
+      ? null
+      : additionalDevicesMap[vendorId]?[productId];
+  if (customDevice != null) return customDevice;
+
   if (vendorId == null) return 'Keyboard';
 
   switch (vendorId) {
     case 1118: // Microsoft
       return switch (productId) {
         2834 || 2835 => 'Xbox Series X-S',
-        654 || 655 || 657 ||681 || 1817 => 'Xbox 360',
+        654 || 655 || 657 || 681 || 1817 => 'Xbox 360',
         _ => 'Xbox One',
         // 721 (0x02D1) — Xbox One controller
         // 733 (0x02DD) — Xbox One controller, 2015 firmware
@@ -54,7 +63,6 @@ String deviceFromHardwareIds(int? vendorId, int? productId) {
         8198 || 8199 || 8206 => 'Switch Joy-Con',
         _ => 'Switch Pro', // 8201
       };
-      return productId == 774 ? 'Wii' : 'Switch Joy-Con';
     case 10462: // Valve
       return switch (productId) {
         4354 || 4418 => 'Steam (G1)',
@@ -67,7 +75,15 @@ String deviceFromHardwareIds(int? vendorId, int? productId) {
 
 /// Mutable last-input hardware folder name shared by prompts.
 class InputDeviceTracker extends ValueNotifier<String> {
-  InputDeviceTracker({String initial = 'Keyboard'}) : super(initial);
+  InputDeviceTracker({
+    String initial = 'Keyboard',
+
+    /// Additional exact VID/PID mappings. These override built-in mappings.
+    Map<int, Map<int, String>> additionalDevicesMap = const {},
+  }) : _additionalDevicesMap = additionalDevicesMap,
+       super(initial);
+
+  final Map<int, Map<int, String>> _additionalDevicesMap;
 
   StreamSubscription<InputDeviceEvent>? _inputSubscription;
 
@@ -83,7 +99,11 @@ class InputDeviceTracker extends ValueNotifier<String> {
   void updateHardwareIds(int? vendorId, int? productId) {
     this.vendorId = vendorId;
     this.productId = productId;
-    value = deviceFromHardwareIds(vendorId, productId);
+    value = deviceFromHardwareIds(
+      vendorId,
+      productId,
+      additionalDevicesMap: _additionalDevicesMap,
+    );
   }
 
   void bind(Stream<InputDeviceEvent> events) {

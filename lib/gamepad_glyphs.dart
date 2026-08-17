@@ -5,8 +5,12 @@ export 'src/gamepad_glyph.dart';
 export 'src/input_types.dart';
 
 class GamepadGlyphs {
-  GamepadGlyphs({InputDeviceTracker? inputDevices})
-    : inputDevices = inputDevices ?? InputDeviceTracker();
+  GamepadGlyphs({
+    InputDeviceTracker? inputDevices,
+    Map<int, Map<int, String>> additionalDevicesMap = const {},
+  }) : inputDevices =
+           inputDevices ??
+           InputDeviceTracker(additionalDevicesMap: additionalDevicesMap);
 
   /// Shared last-input state for prompts owned by this plugin instance.
   final InputDeviceTracker inputDevices;

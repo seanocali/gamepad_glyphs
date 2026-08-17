@@ -8,7 +8,7 @@ import 'package:flutter_svg/flutter_svg.dart';
 import 'input_types.dart';
 import '../gamepad_glyphs_platform_interface.dart';
 
-/// Displays the glyph for a semantic input on the last-used device.
+/// Displays the glyph for a generic input on the last-used device.
 class GamepadGlyph extends StatefulWidget {
   static const defaultAssetRoot = 'assets/input_prompt';
 
@@ -30,6 +30,8 @@ class GamepadGlyph extends StatefulWidget {
     this.alignment = Alignment.center,
   }) : assert(device == null || deviceListenable == null);
 
+  /// Generic input name. A folder's optional `map.conf` resolves this name to
+  /// the native asset filename for that device.
   final String input;
 
   /// Forces a fixed device family and disables automatic input tracking.
@@ -188,6 +190,7 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
   static final _automaticTracker = InputDeviceTracker(initial: 'Xbox One');
   static StreamSubscription<InputDeviceEvent>? _automaticSubscription;
   static int _automaticUsers = 0;
+  static final _glyphMaps = <String, Future<Map<String, String>>>{};
 
   bool _usesAutomaticTracking = false;
 
@@ -268,33 +271,24 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
   }
 
   Widget _buildGlyph(String currentDevice) {
-    final paths = GamepadGlyph.assetPathsFor(
-      input: widget.input,
-      device: currentDevice,
-      style: widget.style,
-      assetRoot: widget.assetRoot,
-      reverseAxes: widget.reverseAxes,
-      mappedKeyboardKey: widget.mappedKeyboardKey,
-    );
-    if (paths.isEmpty) {
-      return SizedBox(width: widget.width, height: widget.height);
-    }
-
-    return FutureBuilder<Uint8List?>(
-      future: _loadFirstAsset(
-        paths,
-        usePluginAssets: widget.assetRoot == GamepadGlyph.defaultAssetRoot,
+    return FutureBuilder<_LoadedGlyph?>(
+      future: _loadGlyph(
+        input: widget.input,
+        device: currentDevice,
+        style: widget.style,
+        assetRoot: widget.assetRoot,
+        reverseAxes: widget.reverseAxes,
+        mappedKeyboardKey: widget.mappedKeyboardKey,
       ),
       builder: (context, snapshot) {
-        final bytes = snapshot.data;
-        if (bytes == null) {
+        final glyph = snapshot.data;
+        if (glyph == null) {
           return SizedBox(width: widget.width, height: widget.height);
         }
 
-        final path = paths.first;
-        if (path.toLowerCase().endsWith('.svg')) {
+        if (glyph.path.toLowerCase().endsWith('.svg')) {
           return SvgPicture.memory(
-            bytes,
+            glyph.bytes,
             width: widget.width,
             height: widget.height,
             fit: widget.fit,
@@ -305,7 +299,7 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
           );
         }
         return Image.memory(
-          bytes,
+          glyph.bytes,
           width: widget.width,
           height: widget.height,
           fit: widget.fit,
@@ -318,21 +312,107 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
     );
   }
 
-  static Future<Uint8List?> _loadFirstAsset(
-    Iterable<String> paths, {
-    required bool usePluginAssets,
+  static Future<_LoadedGlyph?> _loadGlyph({
+    required String input,
+    required String device,
+    required String style,
+    required String assetRoot,
+    required bool reverseAxes,
+    required String? mappedKeyboardKey,
   }) async {
-    for (final path in paths) {
-      try {
-        final assetPath = usePluginAssets
-            ? 'packages/gamepad_glyphs/$path'
-            : path;
-        final data = await rootBundle.load(assetPath);
-        return data.buffer.asUint8List();
-      } catch (_) {
-        // A style may not exist for this hardware. Try its default style next.
+    final key = reverseAxes ? GamepadGlyph._reverseAxis(input) : input;
+    final requestedKey = device == 'Keyboard' && mappedKeyboardKey != null
+        ? mappedKeyboardKey
+        : key;
+    final genericName = requestedKey.contains('.')
+        ? requestedKey
+        : GamepadGlyph._snakeCase(requestedKey);
+    final styles = style == 'default'
+        ? <String>['default']
+        : <String>[style, 'default'];
+
+    for (final candidateStyle in styles) {
+      final folder = _assetFolder(
+        assetRoot: assetRoot,
+        device: device,
+        style: candidateStyle,
+      );
+      final glyphMap = await _loadGlyphMap(
+        folder,
+        assetRoot == GamepadGlyph.defaultAssetRoot,
+      );
+      final assetName = glyphMap[genericName] ?? genericName;
+      final paths = GamepadGlyph._assetPathsForStyle(
+        device: device,
+        style: candidateStyle,
+        assetRoot: assetRoot,
+        keyName: assetName,
+      );
+
+      for (final path in paths) {
+        final bytes = await _loadAsset(
+          path,
+          usePluginAssets: assetRoot == GamepadGlyph.defaultAssetRoot,
+        );
+        if (bytes != null) return _LoadedGlyph(path, bytes);
       }
     }
     return null;
   }
+
+  static String _assetFolder({
+    required String assetRoot,
+    required String device,
+    required String style,
+  }) => '$assetRoot/$device${style == 'default' ? '' : '/$style'}';
+
+  static Future<Map<String, String>> _loadGlyphMap(
+    String folder,
+    bool usePluginAssets,
+  ) => _glyphMaps.putIfAbsent(folder, () async {
+    final contents = await _loadAsset(
+      '$folder/map.conf',
+      usePluginAssets: usePluginAssets,
+    );
+    if (contents == null) return const <String, String>{};
+    return _parseGlyphMap(String.fromCharCodes(contents));
+  });
+
+  static Map<String, String> _parseGlyphMap(String contents) {
+    final result = <String, String>{};
+    for (final rawLine in contents.split('\n')) {
+      final line = rawLine.trim();
+      if (line.isEmpty || line.startsWith('#')) continue;
+      final separator = line.indexOf('=');
+      if (separator <= 0 || separator == line.length - 1) continue;
+      final assetName = line.substring(0, separator).trim();
+      final genericName = line.substring(separator + 1).trim();
+      if (assetName.isEmpty || genericName.isEmpty) continue;
+      result.putIfAbsent(genericName, () => assetName);
+    }
+    return result;
+  }
+
+  static Future<Uint8List?> _loadAsset(
+    String path, {
+    required bool usePluginAssets,
+  }) async {
+    try {
+      final assetPath = usePluginAssets
+          ? 'packages/gamepad_glyphs/$path'
+          : path;
+      final data = await rootBundle.load(assetPath);
+      return data.buffer.asUint8List();
+    } catch (_) {
+      // The file is optional; callers provide the fallback order.
+    }
+    return null;
+  }
+}
+
+class _LoadedGlyph {
+  const _LoadedGlyph(this.path, this.bytes);
+
+  final String path;
+  final Uint8List bytes;
 }

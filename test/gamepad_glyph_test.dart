@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:gamepad_glyphs/gamepad_glyphs.dart';
 
 void main() {
@@ -27,5 +29,16 @@ void main() {
       ),
       'assets/input_prompt/Keyboard/d_pad_left_right.svg',
     );
+  });
+
+  testWidgets('resolves a generic input through a folder map', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: GamepadGlyph(input: 'l2', device: 'Switch Joy-Con'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SvgPicture), findsOneWidget);
   });
 }

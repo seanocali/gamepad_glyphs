@@ -95,9 +95,22 @@ optional styles where the relevant hardware provides them; they are no longer a
 global rendering mode.
 
 The Windows implementation listens for raw keyboard and HID controller input,
-with XInput fallback detection for Xbox controllers.
-Other platforms currently retain the manual update API until their native input
-sources are implemented.
+with XInput fallback detection for Xbox controllers. Linux listens to evdev
+input devices, macOS listens through IOKit HID events, and Android listens to
+Activity key and motion events. Other platforms currently retain the manual
+update API until their native input sources are implemented.
+
+To add or override hardware detection, provide VID/PID mappings when creating
+`GamepadGlyphs`. These are merged with the built-in mappings, and an exact
+custom match takes precedence:
+
+```dart
+final gamepadGlyphs = GamepadGlyphs(
+  additionalDevicesMap: {
+    1234: {5678: 'My Controller'},
+  },
+);
+```
 
 ## Getting Started
 

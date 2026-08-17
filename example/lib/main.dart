@@ -16,7 +16,6 @@ class GamepadGlyphExampleApp extends StatefulWidget {
 class _GamepadGlyphExampleAppState extends State<GamepadGlyphExampleApp> {
   final _inputDevices = InputDeviceTracker();
   late final GamepadGlyphs _gamepadGlyphs;
-  String _style = 'default';
 
   @override
   void initState() {
@@ -54,9 +53,7 @@ class _GamepadGlyphExampleAppState extends State<GamepadGlyphExampleApp> {
                 builder: (context, constraints) => FittedBox(
                   fit: BoxFit.contain,
                   child: _DemoContent(
-                    style: _style,
                     inputDevices: _inputDevices,
-                    onStyleChanged: (value) => setState(() => _style = value),
                     onDeviceSelected: _selectDevice,
                   ),
                 ),
@@ -98,15 +95,11 @@ class _GamepadGlyphExampleAppState extends State<GamepadGlyphExampleApp> {
 
 class _DemoContent extends StatelessWidget {
   const _DemoContent({
-    required this.style,
     required this.inputDevices,
-    required this.onStyleChanged,
     required this.onDeviceSelected,
   });
 
-  final String style;
   final InputDeviceTracker inputDevices;
-  final ValueChanged<String> onStyleChanged;
   final void Function(int? vendorId, int? productId) onDeviceSelected;
 
   @override
@@ -124,32 +117,6 @@ class _DemoContent extends StatelessWidget {
         ExcludeFocus(
           child: Column(
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text('Preferred style: '),
-                  DropdownButton<String>(
-                    value: style,
-                    onChanged: (value) {
-                      if (value != null) onStyleChanged(value);
-                    },
-                    items: const [
-                      DropdownMenuItem(
-                        value: 'default',
-                        child: Text('default'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'MonochromeDark',
-                        child: Text('MonochromeDark'),
-                      ),
-                      DropdownMenuItem(
-                        value: 'MonochromeLight',
-                        child: Text('MonochromeLight'),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -177,7 +144,7 @@ class _DemoContent extends StatelessWidget {
                       ),
                       _SimulationButton(
                         label: 'Simulate Nintendo Switch Joy-Con Input',
-                        onPressed: () => onDeviceSelected(1406, 8201),
+                        onPressed: () => onDeviceSelected(1406, 8206),
                       ),
                       _SimulationButton(
                         label: 'Simulate Keyboard Input',
@@ -201,39 +168,33 @@ class _DemoContent extends StatelessWidget {
             children: [
               _PromptRow(
                 label: 'Change Selection',
-                input: '',
+                input: 'left_thumbstick_up_down',
                 deviceListenable: inputDevices,
-                style: style,
               ),
               _PromptRow(
                 label: 'Change Mode',
-                input: '',
+                input: 'l1r1',
                 deviceListenable: inputDevices,
-                style: style,
               ),
               _PromptRow(
                 label: 'Help',
-                input: '',
+                input: 'north',
                 deviceListenable: inputDevices,
-                style: style,
               ),
               _PromptRow(
                 label: 'More Info',
-                input: '',
+                input: 'west',
                 deviceListenable: inputDevices,
-                style: style,
               ),
               _PromptRow(
                 label: 'Go Back',
-                input: '',
+                input: 'east',
                 deviceListenable: inputDevices,
-                style: style,
               ),
               _PromptRow(
                 label: 'Select Item',
-                input: '',
+                input: 'south',
                 deviceListenable: inputDevices,
-                style: style,
               ),
             ],
           ),
@@ -264,13 +225,11 @@ class _PromptRow extends StatelessWidget {
     required this.label,
     required this.input,
     required this.deviceListenable,
-    required this.style,
   });
 
   final String label;
   final String input;
   final ValueListenable<String> deviceListenable;
-  final String style;
 
   @override
   Widget build(BuildContext context) {
@@ -282,7 +241,6 @@ class _PromptRow extends StatelessWidget {
           child: GamepadGlyph(
             input: input,
             deviceListenable: deviceListenable,
-            style: style,
             width: 50,
             height: 50,
           ),
@@ -370,7 +328,7 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
       'dPadRight',
       'leftThumbstick',
       'rightThumbstick',
-      'homeButton',
+      'home',
     ];
 
     return Scaffold(
