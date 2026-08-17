@@ -317,17 +317,50 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
       'view',
       'menu',
       'l1',
-      'l2',
-      'l3',
       'r1',
+      'l1r1',
+      'l2',
       'r2',
+      'l2r2',
+      'l3',
       'r3',
+      'dPad',
       'dPadUp',
       'dPadDown',
       'dPadLeft',
       'dPadRight',
+      'dPadUpLeft',
+      'dPadUpRight',
+      'dPadDownLeft',
+      'dPadDownRight',
+      'dPadUpDown',
+      'dPadLeftRight',
       'leftThumbstick',
+      'leftThumbstickClockwise',
+      'leftThumbstickCounterclockwise',
+      'leftThumbstickUp',
+      'leftThumbstickDown',
+      'leftThumbstickLeft',
+      'leftThumbstickRight',
+      'leftThumbstickUpLeft',
+      'leftThumbstickUpRight',
+      'leftThumbstickDownLeft',
+      'leftThumbstickDownRight',
+      'leftThumbstickUpDown',
+      'leftThumbstickLeftRight',
       'rightThumbstick',
+      'rightThumbstickClockwise',
+      'rightThumbstickCounterclockwise',
+      'rightThumbstickUp',
+      'rightThumbstickDown',
+      'rightThumbstickLeft',
+      'rightThumbstickRight',
+      'rightThumbstickUpLeft',
+      'rightThumbstickUpRight',
+      'rightThumbstickDownLeft',
+      'rightThumbstickDownRight',
+      'rightThumbstickUpDown',
+      'rightThumbstickLeftRight',
       'home',
     ];
 
@@ -386,11 +419,7 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
                       (device) => DataCell(
                         SizedBox(
                           width: _deviceColumnWidth,
-                          child: _MapGlyphCell(
-                            input: input,
-                            device: device,
-                            glyphName: input,
-                          ),
+                          child: _MapGlyphCell(input: input, device: device),
                         ),
                       ),
                     ),
@@ -430,8 +459,8 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
                         child: DataTable(
                           columnSpacing: 16,
                           horizontalMargin: 12,
-                          dataRowMinHeight: 120,
-                          dataRowMaxHeight: 120,
+                          dataRowMinHeight: 72,
+                          dataRowMaxHeight: 72,
                           headingRowHeight: 0,
                           columns: bodyColumns,
                           rows: bodyRows,
@@ -450,32 +479,15 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
 }
 
 class _MapGlyphCell extends StatelessWidget {
-  const _MapGlyphCell({
-    required this.input,
-    required this.device,
-    required this.glyphName,
-  });
+  const _MapGlyphCell({required this.input, required this.device});
 
   final String input;
   final String device;
-  final String? glyphName;
 
   @override
   Widget build(BuildContext context) {
-    if (glyphName == null) return const Text('—');
-
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        GamepadGlyph(input: input, device: device, width: 42, height: 42),
-        Text(
-          glyphName!,
-          maxLines: 1,
-          softWrap: false,
-          overflow: TextOverflow.clip,
-          style: const TextStyle(fontSize: 10),
-        ),
-      ],
+    return Center(
+      child: GamepadGlyph(input: input, device: device, width: 42, height: 42),
     );
   }
 }
