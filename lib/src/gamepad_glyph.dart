@@ -5,67 +5,59 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/flutter_svg.dart';
 
-import 'input_glyph_table.dart';
 import 'input_types.dart';
 import '../gamepad_glyphs_platform_interface.dart';
 
 /// Displays the glyph for a semantic input on the last-used device.
 class GamepadGlyph extends StatefulWidget {
-  GamepadGlyph({
+  static const defaultAssetRoot = 'assets/input_prompt';
+
+  const GamepadGlyph({
     super.key,
     required this.input,
     this.forceDeviceType,
-    this.defaultDeviceType = GamepadDevice.xboxOne,
+    this.defaultDeviceType = 'Xbox One',
     this.device,
     this.deviceListenable,
     this.style = 'default',
-    this.deviceStyles = const <GamepadDevice, String>{},
-    this.assetRoot = 'assets/input_prompt',
-    this.assetPackage = 'gamepad_glyphs',
-    InputGlyphTable? glyphs,
+    this.deviceStyles,
+    this.assetRoot = defaultAssetRoot,
     this.reverseAxes = false,
     this.mappedKeyboardKey,
     this.width,
     this.height,
     this.fit = BoxFit.contain,
     this.alignment = Alignment.center,
-  }) : glyphs = glyphs ?? defaultInputGlyphs,
-       assert(device == null || deviceListenable == null);
+  }) : assert(device == null || deviceListenable == null);
 
-  final GamepadInputType input;
+  final String input;
 
   /// Forces a fixed device family and disables automatic input tracking.
-  final GamepadDevice? forceDeviceType;
+  final String? forceDeviceType;
 
   /// Device family used when automatic input comes from an unrecognized
   /// controller. It also supplies the initial automatic display.
-  final GamepadDevice defaultDeviceType;
+  final String defaultDeviceType;
 
   /// A fixed device profile for prompts that do not need to listen for input.
-  final InputDeviceProfile? device;
+  final String? device;
 
   /// A shared last-input state, normally an [InputDeviceTracker].
-  final ValueListenable<InputDeviceProfile>? deviceListenable;
+  final ValueListenable<String>? deviceListenable;
 
   /// The preferred style subfolder for all hardware.
   ///
   /// The string is matched directly against a style folder beneath the active
-  /// hardware folder. If the style or glyph is absent, the `default` style is
-  /// tried instead without reporting an error.
+  /// hardware folder. The `default` style uses files directly in the hardware
+  /// folder; named styles use a subfolder and fall back to the hardware root.
   final String style;
 
-  /// Per-hardware style overrides. Values are style subfolder names, such as
-  /// `MonochromeDark`. They take precedence over [style].
-  final Map<GamepadDevice, String> deviceStyles;
+  /// Retained as an ignored compatibility parameter. Use [style] instead.
+  final Object? deviceStyles;
 
   /// Root directory containing hardware/style asset folders.
   final String assetRoot;
 
-  /// Package containing the assets. Set to null for application assets.
-  final String? assetPackage;
-
-  /// The mapping used to resolve semantic inputs to asset names.
-  final InputGlyphTable glyphs;
   final bool reverseAxes;
   final String? mappedKeyboardKey;
   final double? width;
@@ -75,10 +67,9 @@ class GamepadGlyph extends StatefulWidget {
 
   /// Returns the package asset used for a prompt configuration.
   static String assetPathFor({
-    required GamepadInputType input,
-    required InputDeviceProfile device,
+    required String input,
+    required String device,
     String style = 'default',
-    InputGlyphTable? glyphs,
     String assetRoot = 'assets/input_prompt',
     bool reverseAxes = false,
     String? mappedKeyboardKey,
@@ -87,7 +78,6 @@ class GamepadGlyph extends StatefulWidget {
       input: input,
       device: device,
       style: style,
-      glyphs: glyphs,
       assetRoot: assetRoot,
       reverseAxes: reverseAxes,
       mappedKeyboardKey: mappedKeyboardKey,
@@ -95,40 +85,36 @@ class GamepadGlyph extends StatefulWidget {
     return paths.isEmpty ? '' : paths.first;
   }
 
-  /// Returns the requested style path followed by the silent `default`
-  /// fallback path when needed.
+  /// Returns the requested style path followed by the hardware-root path when
+  /// a named style is requested.
   static List<String> assetPathsFor({
-    required GamepadInputType input,
-    required InputDeviceProfile device,
+    required String input,
+    required String device,
     String style = 'default',
-    InputGlyphTable? glyphs,
     String assetRoot = 'assets/input_prompt',
     bool reverseAxes = false,
     String? mappedKeyboardKey,
   }) {
-    if (input == GamepadInputType.none) return const <String>[];
-
-    final glyphTable = glyphs ?? defaultInputGlyphs;
     final key = reverseAxes ? _reverseAxis(input) : input;
-    final keyName = device.isKeyboard && mappedKeyboardKey != null
+    final requestedKey = device == 'Keyboard' && mappedKeyboardKey != null
         ? mappedKeyboardKey
-        : glyphTable.glyphName(key, device.type);
-    if (keyName == null) return const <String>[];
+        : key;
+    final keyName = requestedKey.contains('.')
+        ? requestedKey
+        : _snakeCase(requestedKey);
 
-    final requestedStyle = style == 'default'
-        ? glyphTable.styleFor(device.type)
-        : style;
-    final requestedPath = _assetPathForStyle(
+    final requestedStyle = style;
+    final requestedPaths = _assetPathsForStyle(
       device: device,
       style: requestedStyle,
       assetRoot: assetRoot,
       keyName: keyName,
     );
-    if (requestedStyle == 'default') return <String>[requestedPath];
+    if (requestedStyle == 'default') return requestedPaths;
 
     return <String>[
-      requestedPath,
-      _assetPathForStyle(
+      ...requestedPaths,
+      ..._assetPathsForStyle(
         device: device,
         style: 'default',
         assetRoot: assetRoot,
@@ -137,32 +123,61 @@ class GamepadGlyph extends StatefulWidget {
     ];
   }
 
-  static String _assetPathForStyle({
-    required InputDeviceProfile device,
+  static List<String> _assetPathsForStyle({
+    required String device,
     required String style,
     required String assetRoot,
     required String keyName,
   }) {
-    return '$assetRoot/${device.type.assetFolder}/$style/$keyName';
+    final extension = keyName.contains('.')
+        ? <String>['']
+        : const <String>[
+            '.svg',
+            '.png',
+            '.webp',
+            '.gif',
+            '.apng',
+            '.jpg',
+            '.jpeg',
+          ];
+    final stylePath = style == 'default' ? '' : '/$style';
+    return extension
+        .map((suffix) => '$assetRoot/${device}$stylePath/$keyName$suffix')
+        .toList(growable: false);
+  }
+
+  static String _snakeCase(String value) {
+    var result = value.replaceAllMapped(
+      RegExp(r'([A-Z]+)([A-Z][a-z])'),
+      (match) => '${match[1]}_${match[2]}',
+    );
+    result = result.replaceAllMapped(
+      RegExp(r'([a-z0-9])([A-Z])'),
+      (match) => '${match[1]}_${match[2]}',
+    );
+    return result
+        .replaceAll(RegExp(r'[^A-Za-z0-9]+'), '_')
+        .replaceAll(RegExp(r'^_+|_+$'), '')
+        .toLowerCase();
   }
 
   @override
   State<GamepadGlyph> createState() => _GamepadGlyphState();
 
-  static GamepadInputType _reverseAxis(GamepadInputType input) {
+  static String _reverseAxis(String input) {
     switch (input) {
-      case GamepadInputType.dPadUpDown:
-        return GamepadInputType.dPadLeftRight;
-      case GamepadInputType.dPadLeftRight:
-        return GamepadInputType.dPadUpDown;
-      case GamepadInputType.leftThumbstickLeftRight:
-        return GamepadInputType.leftThumbstickUpDown;
-      case GamepadInputType.leftThumbstickUpDown:
-        return GamepadInputType.leftThumbstickLeftRight;
-      case GamepadInputType.rightThumbstickLeftRight:
-        return GamepadInputType.rightThumbstickUpDown;
-      case GamepadInputType.rightThumbstickUpDown:
-        return GamepadInputType.rightThumbstickLeftRight;
+      case 'dPadUpDown':
+        return 'dPadLeftRight';
+      case 'dPadLeftRight':
+        return 'dPadUpDown';
+      case 'leftThumbstickLeftRight':
+        return 'leftThumbstickUpDown';
+      case 'leftThumbstickUpDown':
+        return 'leftThumbstickLeftRight';
+      case 'rightThumbstickLeftRight':
+        return 'rightThumbstickUpDown';
+      case 'rightThumbstickUpDown':
+        return 'rightThumbstickLeftRight';
       default:
         return input;
     }
@@ -170,9 +185,7 @@ class GamepadGlyph extends StatefulWidget {
 }
 
 class _GamepadGlyphState extends State<GamepadGlyph> {
-  static final _automaticTracker = InputDeviceTracker(
-    initial: InputDeviceProfile(GamepadDevice.xboxOne),
-  );
+  static final _automaticTracker = InputDeviceTracker(initial: 'Xbox One');
   static StreamSubscription<InputDeviceEvent>? _automaticSubscription;
   static int _automaticUsers = 0;
 
@@ -236,44 +249,42 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
   @override
   Widget build(BuildContext context) {
     final fixedType = widget.forceDeviceType;
-    final fixedDevice = fixedType == null
-        ? widget.device
-        : InputDeviceProfile(fixedType);
+    final fixedDevice = fixedType == null ? widget.device : fixedType;
     final listenable = fixedType == null
         ? widget.deviceListenable ??
               (_shouldUseAutomaticTracking ? _automaticTracker : null)
         : null;
 
     if (listenable == null) {
-      return _buildGlyph(fixedDevice ?? const InputDeviceProfile.keyboard());
+      return _buildGlyph(fixedDevice ?? 'Keyboard');
     }
 
-    return ValueListenableBuilder<InputDeviceProfile>(
+    return ValueListenableBuilder<String>(
       valueListenable: listenable,
       builder: (context, currentDevice, child) => _buildGlyph(
-        currentDevice.isRecognized
-            ? currentDevice
-            : InputDeviceProfile(widget.defaultDeviceType),
+        currentDevice.isEmpty ? widget.defaultDeviceType : currentDevice,
       ),
     );
   }
 
-  Widget _buildGlyph(InputDeviceProfile currentDevice) {
+  Widget _buildGlyph(String currentDevice) {
     final paths = GamepadGlyph.assetPathsFor(
       input: widget.input,
       device: currentDevice,
-      style: widget.deviceStyles[currentDevice.type] ?? widget.style,
+      style: widget.style,
       assetRoot: widget.assetRoot,
       reverseAxes: widget.reverseAxes,
       mappedKeyboardKey: widget.mappedKeyboardKey,
-      glyphs: widget.glyphs,
     );
     if (paths.isEmpty) {
       return SizedBox(width: widget.width, height: widget.height);
     }
 
     return FutureBuilder<Uint8List?>(
-      future: _loadFirstAsset(paths, widget.assetPackage),
+      future: _loadFirstAsset(
+        paths,
+        usePluginAssets: widget.assetRoot == GamepadGlyph.defaultAssetRoot,
+      ),
       builder: (context, snapshot) {
         final bytes = snapshot.data;
         if (bytes == null) {
@@ -290,8 +301,7 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
             alignment: widget.alignment,
             errorBuilder: (context, error, stackTrace) =>
                 SizedBox(width: widget.width, height: widget.height),
-            semanticsLabel:
-                '${currentDevice.type.name} ${widget.input.name} input',
+            semanticsLabel: '${currentDevice} ${widget.input} input',
           );
         }
         return Image.memory(
@@ -302,22 +312,21 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
           alignment: widget.alignment,
           errorBuilder: (context, error, stackTrace) =>
               SizedBox(width: widget.width, height: widget.height),
-          semanticLabel:
-              '${currentDevice.type.name} ${widget.input.name} input',
+          semanticLabel: '${currentDevice} ${widget.input} input',
         );
       },
     );
   }
 
   static Future<Uint8List?> _loadFirstAsset(
-    Iterable<String> paths,
-    String? assetPackage,
-  ) async {
+    Iterable<String> paths, {
+    required bool usePluginAssets,
+  }) async {
     for (final path in paths) {
       try {
-        final assetPath = assetPackage == null
-            ? path
-            : 'packages/$assetPackage/$path';
+        final assetPath = usePluginAssets
+            ? 'packages/gamepad_glyphs/$path'
+            : path;
         final data = await rootBundle.load(assetPath);
         return data.buffer.asUint8List();
       } catch (_) {

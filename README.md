@@ -35,74 +35,37 @@ GamepadGlyph(
 );
 ```
 
-## Customize mappings
+## Naming custom glyphs
 
-The mapping is centralized in `defaultInputGlyphs`. Create an app-owned table
-when your keyboard bindings differ from the defaults, then pass it to each
-prompt:
+There is no mapping configuration. Rename each asset to the semantic input it
+represents, using the `GamepadInputType` name:
 
-```dart
-final glyphs = defaultInputGlyphs.withKeyboardOverrides({
-  GamepadInputType.south: 'Space.svg',
-  GamepadInputType.east: 'Escape.svg',
-});
-
-GamepadGlyph(
-  input: GamepadInputType.south,
-  glyphs: glyphs,
-);
+```text
+assets/my_gamepad_glyphs/Xbox One/south.svg
+assets/my_gamepad_glyphs/Xbox One/menu.webp
+assets/my_gamepad_glyphs/Xbox One/l1.svg
+assets/my_gamepad_glyphs/Xbox One/l2.svg
+assets/my_gamepad_glyphs/Xbox One/l3.svg
 ```
 
-Controller mappings remain unchanged by keyboard overrides. For more advanced
-customization, construct an `InputGlyphTable` with customized
-`Hardware` entries. Each hardware entry contains a style folder and a map from
-`GamepadInputType` to the exact asset filename, including its extension.
-
-Applications can keep their mappings in YAML instead of Dart:
-
-```yaml
-hardware:
-  xboxOne:
-    style: default
-    glyphMap:
-      south: Xbox One-A.svg
-      north: Xbox One-Y.svg
-      menu: Xbox One-Start.svg
-      homeButton: confirm.webp
-```
-
-Declare that YAML and its image files in the application `pubspec.yaml`, then
-load it before building prompts:
-
-```dart
-final glyphs = await InputGlyphTable.fromAsset(
-  'assets/gamepad_glyphs.yaml',
-);
-```
-
-Pass `glyphs: glyphs` to `GamepadGlyph`. Set `assetRoot` to the application
-asset directory and `assetPackage: null` when the mapped files are not part of
-this package:
+`GamepadGlyph` probes extensions in this order: `.svg`, `.png`, `.webp`, then
+`.gif`, `.apng`, `.jpg`, then `.jpeg`. Animated GIF, WebP, and APNG files are
+played by Flutter's image codec. To use application-owned assets, set `assetRoot`:
 
 ```dart
 GamepadGlyph(
   input: GamepadInputType.south,
-  glyphs: glyphs,
   assetRoot: 'assets/my_gamepad_glyphs',
-  assetPackage: null,
 );
 ```
-
-Mapping values are used verbatim; the loader does not append `.svg` or rewrite
-filenames. SVG and raster image formats are supported.
 
 ## Styles
 
-Glyph assets are organized as `assets/input_prompt/<hardware>/<style>/`. The
-default style is always named `default`. Request an alternate style by its
-folder name; if that hardware does not provide it, `GamepadGlyph` silently
-uses its `default` style instead. If neither asset exists, the widget displays
-nothing.
+Glyph assets are organized with the default glyphs directly under
+`assets/input_prompt/<hardware>/`. Alternate styles are subfolders beneath the
+hardware folder. Request an alternate style by its folder name; if that
+hardware does not provide it, `GamepadGlyph` silently uses the hardware-root
+glyph instead. If neither asset exists, the widget displays nothing.
 
 ```dart
 GamepadGlyph(

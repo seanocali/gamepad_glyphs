@@ -65,7 +65,7 @@ class _GamepadGlyphExampleAppState extends State<GamepadGlyphExampleApp> {
             Positioned(
               right: 40,
               bottom: 40,
-              child: ValueListenableBuilder<InputDeviceProfile>(
+              child: ValueListenableBuilder<String>(
                 valueListenable: _inputDevices,
                 builder: (context, device, child) => _DeviceStatus(
                   vendorId: _inputDevices.vendorId,
@@ -201,37 +201,37 @@ class _DemoContent extends StatelessWidget {
             children: [
               _PromptRow(
                 label: 'Change Selection',
-                input: GamepadInputType.leftThumbstickUpDown,
+                input: '',
                 deviceListenable: inputDevices,
                 style: style,
               ),
               _PromptRow(
                 label: 'Change Mode',
-                input: GamepadInputType.leftRightShoulder,
+                input: '',
                 deviceListenable: inputDevices,
                 style: style,
               ),
               _PromptRow(
                 label: 'Help',
-                input: GamepadInputType.north,
+                input: '',
                 deviceListenable: inputDevices,
                 style: style,
               ),
               _PromptRow(
                 label: 'More Info',
-                input: GamepadInputType.west,
+                input: '',
                 deviceListenable: inputDevices,
                 style: style,
               ),
               _PromptRow(
                 label: 'Go Back',
-                input: GamepadInputType.east,
+                input: '',
                 deviceListenable: inputDevices,
                 style: style,
               ),
               _PromptRow(
                 label: 'Select Item',
-                input: GamepadInputType.south,
+                input: '',
                 deviceListenable: inputDevices,
                 style: style,
               ),
@@ -268,8 +268,8 @@ class _PromptRow extends StatelessWidget {
   });
 
   final String label;
-  final GamepadInputType input;
-  final ValueListenable<InputDeviceProfile> deviceListenable;
+  final String input;
+  final ValueListenable<String> deviceListenable;
   final String style;
 
   @override
@@ -331,16 +331,16 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
   static const _semanticColumnWidth = 180.0;
   static const _deviceColumnWidth = 100.0;
 
-  static const _devices = <(String, GamepadDevice)>[
-    ('Arcade', GamepadDevice.arcade),
-    ('Xbox 360', GamepadDevice.xbox360),
-    ('Xbox One', GamepadDevice.xboxOne),
-    ('PS3', GamepadDevice.ps3),
-    ('PS4', GamepadDevice.ps4),
-    ('PS5', GamepadDevice.ps5),
-    ('Switch Joy-Con', GamepadDevice.switchJoyCon),
-    ('Steam-G1', GamepadDevice.steamG1),
-    ('Keyboard', GamepadDevice.keyboard),
+  static const _devices = <String>[
+    'Arcade',
+    'Xbox 360',
+    'Xbox One',
+    'PS3',
+    'PS4',
+    'PS5',
+    'Switch Joy-Con',
+    'Steam (G1)',
+    'Keyboard',
   ];
 
   @override
@@ -351,7 +351,27 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final inputs = defaultInputGlyphs.inputs;
+    final inputs = const <String>[
+      'north',
+      'south',
+      'east',
+      'west',
+      'view',
+      'menu',
+      'l1',
+      'l2',
+      'l3',
+      'r1',
+      'r2',
+      'r3',
+      'dPadUp',
+      'dPadDown',
+      'dPadLeft',
+      'dPadRight',
+      'leftThumbstick',
+      'rightThumbstick',
+      'homeButton',
+    ];
 
     return Scaffold(
       appBar: AppBar(
@@ -375,7 +395,7 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
               (device) => DataColumn(
                 label: SizedBox(
                   width: _deviceColumnWidth,
-                  child: Text(device.$1, textAlign: TextAlign.center),
+                  child: Text(device, textAlign: TextAlign.center),
                 ),
               ),
             ),
@@ -398,7 +418,7 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
                       SizedBox(
                         width: _semanticColumnWidth,
                         child: Text(
-                          input.name,
+                          input,
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
@@ -410,11 +430,8 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
                           width: _deviceColumnWidth,
                           child: _MapGlyphCell(
                             input: input,
-                            device: device.$2,
-                            glyphName: defaultInputGlyphs.glyphName(
-                              input,
-                              device.$2,
-                            ),
+                            device: device,
+                            glyphName: input,
                           ),
                         ),
                       ),
@@ -481,8 +498,8 @@ class _MapGlyphCell extends StatelessWidget {
     required this.glyphName,
   });
 
-  final GamepadInputType input;
-  final GamepadDevice device;
+  final String input;
+  final String device;
   final String? glyphName;
 
   @override
@@ -492,12 +509,7 @@ class _MapGlyphCell extends StatelessWidget {
     return Column(
       mainAxisSize: MainAxisSize.min,
       children: [
-        GamepadGlyph(
-          input: input,
-          device: InputDeviceProfile(device),
-          width: 42,
-          height: 42,
-        ),
+        GamepadGlyph(input: input, device: device, width: 42, height: 42),
         Text(
           glyphName!,
           maxLines: 1,
