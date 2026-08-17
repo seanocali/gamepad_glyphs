@@ -16,7 +16,7 @@ class GamepadGlyphExampleApp extends StatefulWidget {
 class _GamepadGlyphExampleAppState extends State<GamepadGlyphExampleApp> {
   final _inputDevices = InputDeviceTracker();
   late final GamepadGlyphs _gamepadGlyphs;
-  bool _useMonochrome = false;
+  String _style = 'default';
 
   @override
   void initState() {
@@ -54,10 +54,9 @@ class _GamepadGlyphExampleAppState extends State<GamepadGlyphExampleApp> {
                 builder: (context, constraints) => FittedBox(
                   fit: BoxFit.contain,
                   child: _DemoContent(
-                    useMonochrome: _useMonochrome,
+                    style: _style,
                     inputDevices: _inputDevices,
-                    onMonochromeChanged: (value) =>
-                        setState(() => _useMonochrome = value),
+                    onStyleChanged: (value) => setState(() => _style = value),
                     onDeviceSelected: _selectDevice,
                   ),
                 ),
@@ -99,15 +98,15 @@ class _GamepadGlyphExampleAppState extends State<GamepadGlyphExampleApp> {
 
 class _DemoContent extends StatelessWidget {
   const _DemoContent({
-    required this.useMonochrome,
+    required this.style,
     required this.inputDevices,
-    required this.onMonochromeChanged,
+    required this.onStyleChanged,
     required this.onDeviceSelected,
   });
 
-  final bool useMonochrome;
+  final String style;
   final InputDeviceTracker inputDevices;
-  final ValueChanged<bool> onMonochromeChanged;
+  final ValueChanged<String> onStyleChanged;
   final void Function(int? vendorId, int? productId) onDeviceSelected;
 
   @override
@@ -128,11 +127,27 @@ class _DemoContent extends StatelessWidget {
               Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Checkbox(
-                    value: useMonochrome,
-                    onChanged: (value) => onMonochromeChanged(value ?? false),
+                  const Text('Preferred style: '),
+                  DropdownButton<String>(
+                    value: style,
+                    onChanged: (value) {
+                      if (value != null) onStyleChanged(value);
+                    },
+                    items: const [
+                      DropdownMenuItem(
+                        value: 'default',
+                        child: Text('default'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'MonochromeDark',
+                        child: Text('MonochromeDark'),
+                      ),
+                      DropdownMenuItem(
+                        value: 'MonochromeLight',
+                        child: Text('MonochromeLight'),
+                      ),
+                    ],
                   ),
-                  const Text('Use Monochrome Icons'),
                 ],
               ),
               Row(
@@ -188,37 +203,37 @@ class _DemoContent extends StatelessWidget {
                 label: 'Change Selection',
                 input: GamepadInputType.leftThumbstickUpDown,
                 deviceListenable: inputDevices,
-                useMonochrome: useMonochrome,
+                style: style,
               ),
               _PromptRow(
                 label: 'Change Mode',
                 input: GamepadInputType.leftRightShoulder,
                 deviceListenable: inputDevices,
-                useMonochrome: useMonochrome,
+                style: style,
               ),
               _PromptRow(
                 label: 'Help',
                 input: GamepadInputType.north,
                 deviceListenable: inputDevices,
-                useMonochrome: useMonochrome,
+                style: style,
               ),
               _PromptRow(
                 label: 'More Info',
                 input: GamepadInputType.west,
                 deviceListenable: inputDevices,
-                useMonochrome: useMonochrome,
+                style: style,
               ),
               _PromptRow(
                 label: 'Go Back',
                 input: GamepadInputType.east,
                 deviceListenable: inputDevices,
-                useMonochrome: useMonochrome,
+                style: style,
               ),
               _PromptRow(
                 label: 'Select Item',
                 input: GamepadInputType.south,
                 deviceListenable: inputDevices,
-                useMonochrome: useMonochrome,
+                style: style,
               ),
             ],
           ),
@@ -249,13 +264,13 @@ class _PromptRow extends StatelessWidget {
     required this.label,
     required this.input,
     required this.deviceListenable,
-    required this.useMonochrome,
+    required this.style,
   });
 
   final String label;
   final GamepadInputType input;
   final ValueListenable<InputDeviceProfile> deviceListenable;
-  final bool useMonochrome;
+  final String style;
 
   @override
   Widget build(BuildContext context) {
@@ -267,7 +282,7 @@ class _PromptRow extends StatelessWidget {
           child: GamepadGlyph(
             input: input,
             deviceListenable: deviceListenable,
-            useMonochrome: useMonochrome,
+            style: style,
             width: 50,
             height: 50,
           ),
@@ -317,6 +332,7 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
   static const _deviceColumnWidth = 100.0;
 
   static const _devices = <(String, GamepadDevice)>[
+    ('Arcade', GamepadDevice.arcade),
     ('Xbox 360', GamepadDevice.xbox360),
     ('Xbox One', GamepadDevice.xboxOne),
     ('PS3', GamepadDevice.ps3),
@@ -335,7 +351,7 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final rows = defaultInputGlyphs.rows.entries;
+    final inputs = defaultInputGlyphs.inputs;
 
     return Scaffold(
       appBar: AppBar(
@@ -374,15 +390,15 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
               ),
             ),
           ];
-          final bodyRows = rows
+          final bodyRows = inputs
               .map(
-                (entry) => DataRow(
+                (input) => DataRow(
                   cells: [
                     DataCell(
                       SizedBox(
                         width: _semanticColumnWidth,
                         child: Text(
-                          entry.key.name,
+                          input.name,
                           textAlign: TextAlign.center,
                           style: const TextStyle(fontWeight: FontWeight.bold),
                         ),
@@ -393,9 +409,12 @@ class _GlyphMapScreenState extends State<_GlyphMapScreen> {
                         SizedBox(
                           width: _deviceColumnWidth,
                           child: _MapGlyphCell(
-                            input: entry.key,
+                            input: input,
                             device: device.$2,
-                            glyphName: entry.value.glyphName(device.$2),
+                            glyphName: defaultInputGlyphs.glyphName(
+                              input,
+                              device.$2,
+                            ),
                           ),
                         ),
                       ),

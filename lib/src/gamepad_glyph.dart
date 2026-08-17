@@ -9,28 +9,28 @@ import 'input_glyph_table.dart';
 import 'input_types.dart';
 import '../gamepad_glyphs_platform_interface.dart';
 
-/// The visual treatment used for keyboard glyphs.
-enum GamepadGlyphTheme { light, dark }
-
 /// Displays the glyph for a semantic input on the last-used device.
 class GamepadGlyph extends StatefulWidget {
-  const GamepadGlyph({
+  GamepadGlyph({
     super.key,
     required this.input,
     this.forceDeviceType,
     this.defaultDeviceType = GamepadDevice.xboxOne,
     this.device,
     this.deviceListenable,
-    this.theme = GamepadGlyphTheme.light,
-    this.glyphs = defaultInputGlyphs,
-    this.useMonochrome = false,
+    this.style = 'default',
+    this.deviceStyles = const <GamepadDevice, String>{},
+    this.assetRoot = 'assets/input_prompt',
+    this.assetPackage = 'gamepad_glyphs',
+    InputGlyphTable? glyphs,
     this.reverseAxes = false,
     this.mappedKeyboardKey,
     this.width,
     this.height,
     this.fit = BoxFit.contain,
     this.alignment = Alignment.center,
-  }) : assert(device == null || deviceListenable == null);
+  }) : glyphs = glyphs ?? defaultInputGlyphs,
+       assert(device == null || deviceListenable == null);
 
   final GamepadInputType input;
 
@@ -47,11 +47,25 @@ class GamepadGlyph extends StatefulWidget {
   /// A shared last-input state, normally an [InputDeviceTracker].
   final ValueListenable<InputDeviceProfile>? deviceListenable;
 
-  final GamepadGlyphTheme theme;
+  /// The preferred style subfolder for all hardware.
+  ///
+  /// The string is matched directly against a style folder beneath the active
+  /// hardware folder. If the style or glyph is absent, the `default` style is
+  /// tried instead without reporting an error.
+  final String style;
+
+  /// Per-hardware style overrides. Values are style subfolder names, such as
+  /// `MonochromeDark`. They take precedence over [style].
+  final Map<GamepadDevice, String> deviceStyles;
+
+  /// Root directory containing hardware/style asset folders.
+  final String assetRoot;
+
+  /// Package containing the assets. Set to null for application assets.
+  final String? assetPackage;
 
   /// The mapping used to resolve semantic inputs to asset names.
   final InputGlyphTable glyphs;
-  final bool useMonochrome;
   final bool reverseAxes;
   final String? mappedKeyboardKey;
   final double? width;
@@ -63,61 +77,73 @@ class GamepadGlyph extends StatefulWidget {
   static String assetPathFor({
     required GamepadInputType input,
     required InputDeviceProfile device,
-    GamepadGlyphTheme theme = GamepadGlyphTheme.light,
-    InputGlyphTable glyphs = defaultInputGlyphs,
-    bool useMonochrome = false,
+    String style = 'default',
+    InputGlyphTable? glyphs,
+    String assetRoot = 'assets/input_prompt',
     bool reverseAxes = false,
     String? mappedKeyboardKey,
   }) {
-    if (input == GamepadInputType.none) return '';
-
-    final key = reverseAxes ? _reverseAxis(input) : input;
-
-    final monochromeFamily = _monochromeFamily(device.type);
-    if (useMonochrome && monochromeFamily != null) {
-      return 'assets/input_prompt/Monochrome/$monochromeFamily/${glyphs.monochromeIndex(key)}.svg';
-    }
-
-    final keyName = device.isKeyboard && mappedKeyboardKey != null
-        ? mappedKeyboardKey
-        : glyphs.glyphName(key, device.type);
-    if (keyName == null) return '';
-
-    if (device.isKeyboard) {
-      final themeFolder = useMonochrome
-          ? 'Monochrome${theme == GamepadGlyphTheme.dark ? 'Dark' : 'Light'}'
-          : theme == GamepadGlyphTheme.dark
-          ? 'Dark'
-          : 'Light';
-      return 'assets/input_prompt/Keyboard/$themeFolder/$keyName.svg';
-    }
-
-    final folder = device.assetPrefix.split('/').first;
-    var prefix = device.assetPrefix.substring(
-      device.assetPrefix.indexOf('/') + 1,
+    final paths = assetPathsFor(
+      input: input,
+      device: device,
+      style: style,
+      glyphs: glyphs,
+      assetRoot: assetRoot,
+      reverseAxes: reverseAxes,
+      mappedKeyboardKey: mappedKeyboardKey,
     );
-    // The bundled Series XS collection has one legacy trigger asset under
-    // the shorter "Xbox Series X" prefix.
-    if (device.type == GamepadDevice.xboxSeriesXs &&
-        keyName == 'LeftTrigger') {
-      prefix = 'Xbox Series X';
-    }
-    return 'assets/input_prompt/$folder/$prefix-$keyName.svg';
+    return paths.isEmpty ? '' : paths.first;
   }
 
-  static String? _monochromeFamily(GamepadDevice type) {
-    switch (type) {
-      case GamepadDevice.xbox360:
-      case GamepadDevice.xboxOne:
-      case GamepadDevice.xboxSeriesXs:
-        return 'Xbox';
-      case GamepadDevice.ps3:
-      case GamepadDevice.ps4:
-      case GamepadDevice.ps5:
-        return 'PlayStation';
-      default:
-        return null;
-    }
+  /// Returns the requested style path followed by the silent `default`
+  /// fallback path when needed.
+  static List<String> assetPathsFor({
+    required GamepadInputType input,
+    required InputDeviceProfile device,
+    String style = 'default',
+    InputGlyphTable? glyphs,
+    String assetRoot = 'assets/input_prompt',
+    bool reverseAxes = false,
+    String? mappedKeyboardKey,
+  }) {
+    if (input == GamepadInputType.none) return const <String>[];
+
+    final glyphTable = glyphs ?? defaultInputGlyphs;
+    final key = reverseAxes ? _reverseAxis(input) : input;
+    final keyName = device.isKeyboard && mappedKeyboardKey != null
+        ? mappedKeyboardKey
+        : glyphTable.glyphName(key, device.type);
+    if (keyName == null) return const <String>[];
+
+    final requestedStyle = style == 'default'
+        ? glyphTable.styleFor(device.type)
+        : style;
+    final requestedPath = _assetPathForStyle(
+      device: device,
+      style: requestedStyle,
+      assetRoot: assetRoot,
+      keyName: keyName,
+    );
+    if (requestedStyle == 'default') return <String>[requestedPath];
+
+    return <String>[
+      requestedPath,
+      _assetPathForStyle(
+        device: device,
+        style: 'default',
+        assetRoot: assetRoot,
+        keyName: keyName,
+      ),
+    ];
+  }
+
+  static String _assetPathForStyle({
+    required InputDeviceProfile device,
+    required String style,
+    required String assetRoot,
+    required String keyName,
+  }) {
+    return '$assetRoot/${device.type.assetFolder}/$style/$keyName';
   }
 
   @override
@@ -142,6 +168,7 @@ class GamepadGlyph extends StatefulWidget {
     }
   }
 }
+
 class _GamepadGlyphState extends State<GamepadGlyph> {
   static final _automaticTracker = InputDeviceTracker(
     initial: InputDeviceProfile(GamepadDevice.xboxOne),
@@ -214,7 +241,7 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
         : InputDeviceProfile(fixedType);
     final listenable = fixedType == null
         ? widget.deviceListenable ??
-            (_shouldUseAutomaticTracking ? _automaticTracker : null)
+              (_shouldUseAutomaticTracking ? _automaticTracker : null)
         : null;
 
     if (listenable == null) {
@@ -232,28 +259,42 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
   }
 
   Widget _buildGlyph(InputDeviceProfile currentDevice) {
-    final path = GamepadGlyph.assetPathFor(
+    final paths = GamepadGlyph.assetPathsFor(
       input: widget.input,
       device: currentDevice,
-      theme: widget.theme,
-      useMonochrome: widget.useMonochrome,
+      style: widget.deviceStyles[currentDevice.type] ?? widget.style,
+      assetRoot: widget.assetRoot,
       reverseAxes: widget.reverseAxes,
       mappedKeyboardKey: widget.mappedKeyboardKey,
       glyphs: widget.glyphs,
     );
-    if (path.isEmpty) {
+    if (paths.isEmpty) {
       return SizedBox(width: widget.width, height: widget.height);
     }
 
     return FutureBuilder<Uint8List?>(
-      future: _loadAsset(path),
+      future: _loadFirstAsset(paths, widget.assetPackage),
       builder: (context, snapshot) {
         final bytes = snapshot.data;
         if (bytes == null) {
           return SizedBox(width: widget.width, height: widget.height);
         }
 
-        return SvgPicture.memory(
+        final path = paths.first;
+        if (path.toLowerCase().endsWith('.svg')) {
+          return SvgPicture.memory(
+            bytes,
+            width: widget.width,
+            height: widget.height,
+            fit: widget.fit,
+            alignment: widget.alignment,
+            errorBuilder: (context, error, stackTrace) =>
+                SizedBox(width: widget.width, height: widget.height),
+            semanticsLabel:
+                '${currentDevice.type.name} ${widget.input.name} input',
+          );
+        }
+        return Image.memory(
           bytes,
           width: widget.width,
           height: widget.height,
@@ -261,28 +302,28 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
           alignment: widget.alignment,
           errorBuilder: (context, error, stackTrace) =>
               SizedBox(width: widget.width, height: widget.height),
-          colorFilter:
-              widget.useMonochrome &&
-                  GamepadGlyph._monochromeFamily(currentDevice.type) != null
-              ? ColorFilter.mode(
-                  widget.theme == GamepadGlyphTheme.dark
-                      ? Colors.white
-                      : Colors.black,
-                  BlendMode.srcIn,
-                )
-              : null,
-          semanticsLabel: '${currentDevice.type.name} ${widget.input.name} input',
+          semanticLabel:
+              '${currentDevice.type.name} ${widget.input.name} input',
         );
       },
     );
   }
 
-  static Future<Uint8List?> _loadAsset(String path) async {
-    try {
-      final data = await rootBundle.load('packages/gamepad_glyphs/$path');
-      return data.buffer.asUint8List();
-    } catch (_) {
-      return null;
+  static Future<Uint8List?> _loadFirstAsset(
+    Iterable<String> paths,
+    String? assetPackage,
+  ) async {
+    for (final path in paths) {
+      try {
+        final assetPath = assetPackage == null
+            ? path
+            : 'packages/$assetPackage/$path';
+        final data = await rootBundle.load(assetPath);
+        return data.buffer.asUint8List();
+      } catch (_) {
+        // A style may not exist for this hardware. Try its default style next.
+      }
     }
+    return null;
   }
 }

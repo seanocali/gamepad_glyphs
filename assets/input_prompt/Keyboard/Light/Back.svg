@@ -189,11 +189,4 @@ L 87.95 22.1 Z"/>
 <use xlink:href="#Layer1_0_2_STROKES"/>
 </g>
 
-<g transform="matrix( 1, 0, 0, 1, -3.4,-28) ">
-<clipPath id="Mask_Mask_1">
-<rect x="0.85" y="-2" width="105.1" height="20.8" fill="#FFFFFF" stroke="none"/>
-</clipPath>
-
-<text clip-path="url(#Mask_Mask_1)" writing-mode="lr"><tspan x="2.9" y="13.6" baseline-shift="0%" kerning="auto" font-family="Arial_Regular" font-size="15" fill="#999999" xml:space="preserve">Light Keyboard</tspan></text>
-</g>
 </svg>

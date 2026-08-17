@@ -15,6 +15,7 @@ dependencies:
     sdk: flutter
   web: ^1.0.0
   plugin_platform_interface: ^2.0.2
+  yaml: ^3.1.3
 
 dev_dependencies:
   flutter_test:
@@ -27,20 +28,32 @@ dev_dependencies:
 # The following section is specific to Flutter packages.
 flutter:
   assets:
-    - assets/input_prompt/Amazon/
-    - assets/input_prompt/Facebook/
-    - assets/input_prompt/Google/
-    - assets/input_prompt/Keyboard/Dark/
+    - assets/input_prompt/default_mapping.yaml
+    - assets/input_prompt/Arcade/default/
+    - assets/input_prompt/Arcade/blue/
+    - assets/input_prompt/Arcade/green/
+    - assets/input_prompt/Arcade/yellow/
+    - assets/input_prompt/Keyboard/default/
     - assets/input_prompt/Keyboard/Light/
     - assets/input_prompt/Keyboard/MonochromeDark/
     - assets/input_prompt/Keyboard/MonochromeLight/
-    - assets/input_prompt/Monochrome/PlayStation/
-    - assets/input_prompt/Monochrome/Xbox/
-    - assets/input_prompt/Microsoft/
-    - assets/input_prompt/Nintendo/
-    - assets/input_prompt/OUYA/
-    - assets/input_prompt/Sony/
-    - assets/input_prompt/Valve/
+    - assets/input_prompt/Luna/default/
+    - assets/input_prompt/OUYA/default/
+    - assets/input_prompt/PS Move/default/
+    - assets/input_prompt/PS3/default/
+    - assets/input_prompt/PS4/default/
+    - assets/input_prompt/PS5/default/
+    - assets/input_prompt/PS5/MonochromeDark/
+    - assets/input_prompt/PSVita/default/
+    - assets/input_prompt/Quest/default/
+    - assets/input_prompt/Stadia/default/
+    - assets/input_prompt/Steam (G1)/default/
+    - assets/input_prompt/Switch Joy-Con/default/
+    - assets/input_prompt/Wii/default/
+    - assets/input_prompt/Xbox 360/default/
+    - assets/input_prompt/Xbox One/default/
+    - assets/input_prompt/Xbox Series X-S/default/
+    - assets/input_prompt/Xbox Series X-S/MonochromeDark/
 
   # This section identifies this Flutter project as a plugin project.
   # The 'pluginClass' specifies the class (in Java, Kotlin, Swift, Objective-C, etc.)

@@ -26,6 +26,7 @@ class InputDeviceEvent {
     'productId': productId,
   };
 }
+
 /// Semantic inputs that can be used by a [GamepadGlyph].
 enum GamepadInputType {
   north,
@@ -85,6 +86,7 @@ enum GamepadInputType {
 
 /// Selects whether a [GamepadGlyph] follows input or always uses one family.
 enum GamepadDevice {
+  arcade,
   keyboard,
   xbox360,
   xboxOne,
@@ -155,31 +157,6 @@ class InputDeviceProfile {
     }
   }
 
-  String get assetPrefix {
-    switch (type) {
-      case GamepadDevice.keyboard:
-        return 'Keyboard';
-      case GamepadDevice.xbox360:
-        return 'Microsoft/Xbox 360';
-      case GamepadDevice.xboxOne:
-        return 'Microsoft/Xbox One';
-      case GamepadDevice.xboxSeriesXs:
-        return 'Microsoft/Xbox Series XS';
-      case GamepadDevice.ps3:
-        return 'Sony/PS3';
-      case GamepadDevice.ps4:
-        return 'Sony/PS4';
-      case GamepadDevice.ps5:
-        return 'Sony/PS5';
-      case GamepadDevice.wii:
-        return 'Nintendo/Wii';
-      case GamepadDevice.switchJoyCon:
-        return 'Nintendo/Switch';
-      case GamepadDevice.steamG1:
-        return 'Valve/Steam-G1';
-    }
-  }
-
   @override
   bool operator ==(Object other) =>
       other is InputDeviceProfile &&
@@ -188,6 +165,51 @@ class InputDeviceProfile {
 
   @override
   int get hashCode => Object.hash(type, isRecognized);
+}
+
+extension GamepadDeviceAssetPaths on GamepadDevice {
+  /// The hardware-specific root folder for this device's glyph assets.
+  String get assetFolder => switch (this) {
+    GamepadDevice.arcade => 'Arcade',
+    GamepadDevice.keyboard => 'Keyboard',
+    GamepadDevice.xbox360 => 'Xbox 360',
+    GamepadDevice.xboxOne => 'Xbox One',
+    GamepadDevice.xboxSeriesXs => 'Xbox Series X-S',
+    GamepadDevice.ps3 => 'PS3',
+    GamepadDevice.ps4 => 'PS4',
+    GamepadDevice.ps5 => 'PS5',
+    GamepadDevice.wii => 'Wii',
+    GamepadDevice.switchJoyCon => 'Switch Joy-Con',
+    GamepadDevice.steamG1 => 'Steam (G1)',
+  };
+
+  /// The prefix used by non-keyboard glyph file names inside a style folder.
+  String? get assetFilePrefix => switch (this) {
+    GamepadDevice.arcade => null,
+    GamepadDevice.keyboard => null,
+    GamepadDevice.xbox360 => 'Xbox 360',
+    GamepadDevice.xboxOne => 'Xbox One',
+    GamepadDevice.xboxSeriesXs => 'Xbox Series XS',
+    GamepadDevice.ps3 => 'PS3',
+    GamepadDevice.ps4 => 'PS4',
+    GamepadDevice.ps5 => 'PS5',
+    GamepadDevice.wii => 'Wii',
+    GamepadDevice.switchJoyCon => 'Switch',
+    GamepadDevice.steamG1 => 'Steam-G1',
+  };
+
+  String assetFileName(String glyphName) {
+    if (this == GamepadDevice.arcade || this == GamepadDevice.keyboard) {
+      return '$glyphName.svg';
+    }
+
+    // This one Series X|S asset retains its historic on-disk file name.
+    final prefix =
+        this == GamepadDevice.xboxSeriesXs && glyphName == 'LeftTrigger'
+        ? 'Xbox Series X'
+        : assetFilePrefix!;
+    return '$prefix-$glyphName.svg';
+  }
 }
 
 /// Mutable last-input state that can be shared by multiple prompts.

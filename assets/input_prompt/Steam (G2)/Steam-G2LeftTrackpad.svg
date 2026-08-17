@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Fixed top-down lighting (does not rotate with the pad) -->
+    <linearGradient id="faceGrad" gradientUnits="userSpaceOnUse"
+                    x1="0" y1="60" x2="0" y2="450">
+      <stop offset="0%" stop-color="#4a4a4a"/>
+      <stop offset="40%" stop-color="#3a3a3a"/>
+      <stop offset="100%" stop-color="#2e2e2e"/>
+    </linearGradient>
+
+    <linearGradient id="highlight" gradientUnits="userSpaceOnUse"
+                    x1="0" y1="60" x2="0" y2="280">
+      <stop offset="0%" stop-color="#5a5a5a" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#3a3a3a" stop-opacity="0"/>
+    </linearGradient>
+
+    <radialGradient id="softLight" gradientUnits="userSpaceOnUse"
+                    cx="292" cy="160" r="280">
+      <stop offset="0%" stop-color="#555555" stop-opacity="0.32"/>
+      <stop offset="70%" stop-color="#3a3a3a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Geometry rotated the opposite direction -->
+  <g transform="translate(256 256) rotate(6) translate(-256 -256)">
+    <!-- Outer rim -->
+    <rect x="56" y="56" width="400" height="400" rx="68" ry="68" fill="#1a1a1a"/>
+    
+    <!-- Mid bevel -->
+    <rect x="72" y="72" width="368" height="368" rx="60" ry="60" fill="#252525"/>
+    
+    <!-- Main face -->
+    <rect x="88" y="88" width="336" height="336" rx="52" ry="52" fill="url(#faceGrad)"/>
+    
+    <!-- Top highlight (fixed light direction) -->
+    <rect x="88" y="88" width="336" height="336" rx="52" ry="52" fill="url(#highlight)"/>
+    
+    <!-- Soft light -->
+    <rect x="88" y="88" width="336" height="336" rx="52" ry="52" fill="url(#softLight)"/>
+    
+    <!-- Thin inner edge -->
+    <rect x="96" y="96" width="320" height="320" rx="46" ry="46"
+          fill="none" stroke="#222222" stroke-width="3" opacity="0.7"/>
+  </g>
+</svg>
