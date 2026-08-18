@@ -46,7 +46,9 @@ flutter:
     - assets/input_prompt/Quest/
     - assets/input_prompt/Stadia/
     - assets/input_prompt/Steam (G1)/
+    - assets/input_prompt/Steam (G2)/
     - assets/input_prompt/Switch Joy-Con/
+    - assets/input_prompt/Switch Pro/
     - assets/input_prompt/Wii/
     - assets/input_prompt/Xbox 360/
     - assets/input_prompt/Xbox One/

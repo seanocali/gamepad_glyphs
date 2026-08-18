@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 148 148" style="enable-background:new 0 0 148 148;" xml:space="preserve">
+<g id="CleanRightThumbstick" transform="translate(24 24)">
+  <g id="Layer1_0_FILL">
+    <circle cx="50" cy="50" r="42.2" fill="#4E4E4E" stroke="none"/>
+    <circle cx="50" cy="50" r="33.925" fill="#4E4E4E" stroke="none"/>
+    <rect x="48.65" y="9.55" width="2.7" height="5.85" fill="#272727" stroke="none"/>
+    <rect x="84.6" y="48.65" width="5.85" height="2.7" fill="#272727" stroke="none"/>
+    <rect x="48.65" y="84.6" width="2.7" height="5.85" fill="#272727" stroke="none"/>
+    <rect x="9.55" y="48.65" width="5.85" height="2.7" fill="#272727" stroke="none"/>
+    <circle cx="50" cy="50" r="33.925" fill="none" stroke="#272727" stroke-width="1.35"/>
+    <path fill="#8C8C8C" stroke="none" d="
+M 59.55 41.6
+Q 58.8 40.15 57.5 39.3 56.25 38.45 54.55 38.1 52.85 37.7 50.95 37.7
+L 41.4 37.7 41.4 62.5 46.85 62.5 46.85 52.6 49.5 52.6 54.7 62.5 61.25 62.5 54.95 52
+Q 57.55 51.55 58.95 49.7 60.3 47.85 60.3 45.25 60.3 43.05 59.55 41.6
+M 46.85 42.35
+L 50.4 42.35
+Q 51.15 42.35 51.9 42.45 52.65 42.55 53.25 42.85 53.85 43.15 54.25 43.7 54.6 44.25 54.6 45.2 54.6 46.25 54.2 46.8 53.75 47.35 53.1 47.6 52.4 47.85 51.6 47.9 50.8 47.95 50.05 47.95
+L 46.85 47.95 46.85 42.35 Z"/>
+  </g>
+  <circle id="Layer1_0_1_STROKES" cx="50" cy="50" r="42.2" stroke="#151515" stroke-width="4" fill="none"/>
+</g>
+<path id="Up" style="fill:#BFBFBF;stroke:#000000;stroke-width:3;" d="M74,3L50,26.8h48L74,3z"/>
+</svg>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Generator: Adobe Illustrator 25.0.0, SVG Export Plug-In . SVG Version: 6.00 Build 0)  -->
+<svg version="1.1" id="Layer_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
+	 viewBox="0 0 148 148" style="enable-background:new 0 0 148 148;" xml:space="preserve">
+<g id="CleanLeftThumbstick" transform="translate(24 24)">
+  <g id="Layer1_0_FILL">
+    <circle cx="50" cy="50" r="42.2" fill="#4E4E4E" stroke="none"/>
+    <circle cx="50" cy="50" r="33.925" fill="#4E4E4E" stroke="none"/>
+    <rect x="48.65" y="9.55" width="2.7" height="5.85" fill="#272727" stroke="none"/>
+    <rect x="84.6" y="48.65" width="5.85" height="2.7" fill="#272727" stroke="none"/>
+    <rect x="48.65" y="84.6" width="2.7" height="5.85" fill="#272727" stroke="none"/>
+    <rect x="9.55" y="48.65" width="5.85" height="2.7" fill="#272727" stroke="none"/>
+    <circle cx="50" cy="50" r="33.925" fill="none" stroke="#272727" stroke-width="1.35"/>
+    <path fill="#8C8C8C" stroke="none" d=" M 49 37.7 L 43.55 37.7 43.55 62.5 59.1 62.5 59.1 57.45 49 57.45 49 37.7 Z"/>
+  </g>
+  <circle id="Layer1_0_1_STROKES" cx="50" cy="50" r="42.2" stroke="#151515" stroke-width="4" fill="none"/>
+</g>
+<path id="Up" style="fill:#BFBFBF;stroke:#000000;stroke-width:3;" d="M74,3L50,26.8h48L74,3z"/>
+<path id="Down" style="fill:#BFBFBF;stroke:#000000;stroke-width:3;" d="M74,145l24-23.8H50L74,145z"/>
+</svg>

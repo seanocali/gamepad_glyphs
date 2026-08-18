@@ -1,0 +1,36 @@
+| Product Name                                         | Vendor ID | Product ID | Layout style |
+| ---------------------------------------------------- | --------: | ---------: | ------------ |
+| 8BitDo Pro 2 Wired Controller for Xbox               |     11720 |       8192 | Xbox         |
+| 8BitDo Ultimate 3-mode Controller for Xbox           |     11720 |       8207 | Xbox         |
+| 8BitDo Ultimate 2C Wireless Controller               |     11720 |      12554 | Xbox         |
+| 8BitDo Ultimate 2 Wireless Controller                |     11720 |      12555 | Xbox         |
+| GameSir T4 Kaleid                                    |     13623 |       4100 | Xbox         |
+| GameSir Nova 2 Lite                                  |     13623 |       4111 | Xbox         |
+| GameSir G7 SE                                        |     13623 |       4112 | Xbox         |
+| Flydigi Apex 5                                       |     14295 |       9473 | Xbox         |
+| Logitech F310                                        |      1133 |      49693 | Xbox         |
+| Logitech F710                                        |      1133 |      49695 | Xbox         |
+| PowerA Enhanced Wired Controller for Xbox Series X|S |      8406 |       8201 | Xbox         |
+| PowerA Wired Controller for Xbox                     |      8406 |       8292 | Xbox         |
+| PowerA FUSION Pro 4 Wired Controller                 |      8406 |      16395 | Xbox         |
+| PowerA MOGA XP-Ultra                                 |      8406 |      35083 | Xbox         |
+| PDP Xbox Series X Afterglow                          |      3695 |        730 | Xbox         |
+| Turtle Beach Recon Controller                        |      4341 |      28677 | Xbox         |
+| Turtle Beach Recon Controller                        |      4341 |      28680 | Xbox         |
+| Turtle Beach Recon Controller                        |      4341 |      28681 | Xbox         |
+| Turtle Beach Stealth Ultra                           |      4341 |      28787 | Xbox         |
+| Razer Wolverine V2                                   |      5426 |       2601 | Xbox         |
+| Razer Wolverine V3 Pro — wired                       |      5426 |       2647 | Xbox         |
+| Razer Wolverine V3 Pro — 2.4 GHz dongle              |      5426 |       2649 | Xbox         |
+| Razer Wolverine V2 Pro — wired                       |      5426 |       4107 | PS           |
+| Razer Wolverine V2 Pro — wireless                    |      5426 |       4108 | PS           |
+| Nacon Pro Compact for Xbox                           |     12933 |       1539 | Xbox         |
+| Nacon Pro Compact                                    |     12933 |       1556 | Xbox         |
+| Nacon Pro Compact                                    |     12933 |       1606 | Xbox         |
+| Nacon Revolution 5 Pro — XInput mode                 |     12933 |       1634 | PS           |
+| Nacon Revolution 5 Pro — PS5 dongle mode             |     12933 |       3352 | PS           |
+| Nacon Revolution 5 Pro — PS5 wired mode              |     12933 |       3353 | PS           |
+| Thrustmaster Gamepad GP XID                          |      1103 |      45862 | Xbox         |
+| Thrustmaster ESWAP X 2                               |      1103 |      53278 | Xbox         |
+| SteelSeries Stratus Duo                              |      4152 |       5168 | Xbox         |
+| SteelSeries Stratus Duo                              |      4152 |       5169 | Xbox         |

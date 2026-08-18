@@ -1,0 +1,80 @@
+
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" viewBox="0 0 100 100">
+<defs>
+<g id="Layer1_0_FILL">
+
+<path id="Click" fill="#BFBFBF" stroke="#000000" stroke-width="2" d="M50,20.9L68,3.1H32L50,20.9z"/>
+
+<path fill="#272727" stroke="none" d="
+M 30.7 68.8
+Q 29.6 69.2 28.55 69.65 19.65 73.55 19.65 79.1 19.65 84.65 28.55 88.5 37.45 92.4 50 92.4 62.55 92.4 71.45 88.5 80.35 84.65 80.35 79.1 80.35 73.55 71.45 69.65 71.4 69.6 71.3 69.6 70.35 69.2 69.35 68.85
+L 69.35 76.3
+Q 69.35 79.1 63.7 81.05 58 83.05 49.95 83.05 41.9 83.05 36.15 81.05 30.55 79.1 30.7 76.3
+L 30.7 68.8 Z"/>
+
+<path fill="#4E4E4E" stroke="none" d="
+M 90.35 37.55
+Q 88.9 32.75 85.75 30.65 83.2 28.75 76.9 27.3 76 27.1 75.1 26.9 64.45 24.7 50 24.7 34.3 24.7 23.2 27.3 14.7 29.25 12.8 31.9 10.75 34 9.7 37.55 7.65 45.65 16.45 49.8 21.4 52.05 25.5 53.05 30.55 55 30.7 60.55
+L 30.7 68.8 30.7 76.3
+Q 30.55 79.1 36.15 81.05 41.9 83.05 49.95 83.05 58 83.05 63.7 81.05 69.35 79.1 69.35 76.3
+L 69.35 68.85 69.35 60.55
+Q 69.5 55 74.55 53.05 78.65 52.05 83.6 49.8 92.4 45.65 90.35 37.55
+M 81.55 34.75
+Q 81.6 34.9 81.65 35.05 81.7 35.15 81.7 35.3
+L 81.7 35.5
+Q 81.7 38.3 72.45 40.25 63.1 42.25 49.9 42.25 36.75 42.25 27.35 40.25 18.15 38.3 18.4 35.5 18.35 35.1 18.5 34.75 19.4 32.45 27.35 30.75 36.75 28.75 49.9 28.75 63.1 28.75 72.45 30.75 80.45 32.45 81.55 34.75"/>
+
+<path fill="#8C8C8C" stroke="none" transform="matrix(0.705289673,0,0,0.705289673,15.151007557,26.164987406)" d="
+M 59.55 41.6
+Q 58.8 40.15 57.5 39.3 56.25 38.45 54.55 38.1 52.85 37.7 50.95 37.7
+L 41.4 37.7 41.4 62.5 46.85 62.5 46.85 52.6 49.5 52.6 54.7 62.5 61.25 62.5 54.95 52
+Q 57.55 51.55 58.95 49.7 60.3 47.85 60.3 45.25 60.3 43.05 59.55 41.6
+M 46.85 42.35
+L 50.4 42.35
+Q 51.15 42.35 51.9 42.45 52.65 42.55 53.25 42.85 53.85 43.15 54.25 43.7 54.6 44.25 54.6 45.2 54.6 46.25 54.2 46.8 53.75 47.35 53.1 47.6 52.4 47.85 51.6 47.9 50.8 47.95 50.05 47.95
+L 46.85 47.95 46.85 42.35 Z"/>
+
+<!-- Switch thumbstick face (v4): L removed; face and restored outer black ring enlarged by an additional 2% around the same perspective center -->
+<!-- Switch thumbstick face. The large face and outer ring keep the original transform.
+     Only the fine inner ring/notches are drawn in final viewBox coordinates so
+     the vertical 0.2263 scale does not collapse them below a pixel in Flutter. -->
+<g id="ThumbstickTop_v5_face" transform="matrix(0.856741153,0,0,0.226341657,7.112942343,24.182917165)">
+  <circle cx="50" cy="50" r="42.2" fill="#4E4E4E"/>
+</g>
+
+<!-- Four directional notches lengthened in-place for better visibility while preserving their centers. -->
+<rect x="48.7934" y="26.00653" width="2.3132" height="2.0" fill="#272727"/>
+<rect x="78.49921" y="34.7" width="7.2" height="1.6" fill="#272727"/>
+<rect x="48.7934" y="42.99347" width="2.3132" height="2.0" fill="#272727"/>
+<rect x="14.20079" y="34.7" width="7.2" height="1.6" fill="#272727"/>
+
+<!-- Same transformed center and radii as the original inner circle. -->
+<ellipse cx="49.95" cy="35.5" rx="29.06494" ry="7.67864" fill="none" stroke="#272727" stroke-width="1.6"/>
+
+<!-- Outer face ring matched to the inner ring/notches shade. -->
+<g id="ThumbstickTop_v5_outer_ring" transform="matrix(0.856741153,0,0,0.226341657,7.112942343,24.182917165)">
+  <circle cx="50" cy="50" r="42.2" fill="none" stroke="#272727" stroke-width="2.5"/>
+</g>
+</g>
+
+<path id="Layer1_0_1_STROKES" stroke="#151515" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" fill="none" d="
+M 30.7 68.8
+L 30.7 60.55
+Q 30.55 55 25.5 53.05 21.4 52.05 16.45 49.8 7.65 45.65 9.7 37.55 10.75 34 12.8 31.9 14.7 29.25 23.2 27.3 34.3 24.7 50 24.7 64.45 24.7 75.1 26.9 76 27.1 76.9 27.3 83.2 28.75 85.75 30.65 88.9 32.75 90.35 37.55 92.4 45.65 83.6 49.8 78.65 52.05 74.55 53.05 69.5 55 69.35 60.55
+L 69.35 68.85
+Q 70.35 69.2 71.3 69.6 71.4 69.6 71.45 69.65 80.35 73.55 80.35 79.1 80.35 84.65 71.45 88.5 62.55 92.4 50 92.4 37.45 92.4 28.55 88.5 19.65 84.65 19.65 79.1 19.65 73.55 28.55 69.65 29.6 69.2 30.7 68.8
+L 30.7 76.3
+Q 30.55 79.1 36.15 81.05 41.9 83.05 49.95 83.05 58 83.05 63.7 81.05 69.35 79.1 69.35 76.3
+L 69.35 68.85"/>
+
+
+</defs>
+
+<g transform="matrix( 1, 0, 0, 1, 0,0) ">
+<use xlink:href="#Layer1_0_FILL"/>
+
+<use xlink:href="#Layer1_0_1_STROKES"/>
+
+</g>
+
+</svg>

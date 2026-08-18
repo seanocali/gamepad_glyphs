@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <!-- Fixed top-down lighting (does not rotate with the pad) -->
+    <linearGradient id="faceGrad" gradientUnits="userSpaceOnUse"
+                    x1="0" y1="60" x2="0" y2="450">
+      <stop offset="0%" stop-color="#4a4a4a"/>
+      <stop offset="40%" stop-color="#3a3a3a"/>
+      <stop offset="100%" stop-color="#2e2e2e"/>
+    </linearGradient>
+
+    <linearGradient id="highlight" gradientUnits="userSpaceOnUse"
+                    x1="0" y1="60" x2="0" y2="280">
+      <stop offset="0%" stop-color="#5a5a5a" stop-opacity="0.55"/>
+      <stop offset="100%" stop-color="#3a3a3a" stop-opacity="0"/>
+    </linearGradient>
+
+    <radialGradient id="softLight" gradientUnits="userSpaceOnUse"
+                    cx="220" cy="160" r="280">
+      <stop offset="0%" stop-color="#555555" stop-opacity="0.32"/>
+      <stop offset="70%" stop-color="#3a3a3a" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <!-- Only the geometry is rotated -->
+  <g transform="translate(256 256) rotate(-6) translate(-256 -256)">
+    <!-- Outer rim -->
+    <rect x="56" y="56" width="400" height="400" rx="68" ry="68" fill="#1a1a1a"/>
+    
+    <!-- Mid bevel -->
+    <rect x="72" y="72" width="368" height="368" rx="60" ry="60" fill="#252525"/>
+    
+    <!-- Main face -->
+    <rect x="88" y="88" width="336" height="336" rx="52" ry="52" fill="url(#faceGrad)"/>
+    
+    <!-- Top highlight (fixed light direction) -->
+    <rect x="88" y="88" width="336" height="336" rx="52" ry="52" fill="url(#highlight)"/>
+    
+    <!-- Soft light -->
+    <rect x="88" y="88" width="336" height="336" rx="52" ry="52" fill="url(#softLight)"/>
+    
+    <!-- Thin inner edge -->
+    <rect x="96" y="96" width="320" height="320" rx="46" ry="46"
+          fill="none" stroke="#222222" stroke-width="3" opacity="0.7"/>
+  </g>
+  <!-- Swipe right arrow copied verbatim from touch_pad_swipe_right.svg and centered on the 512x512 canvas. -->
+  <g transform="translate(256 256) scale(5.12) translate(-50.6 -48.85)">
+    <path fill="#BFBFBF" stroke="none" transform="matrix(0.187520598 0 0 0.167710880 2.028165440 9.116014670)" d="M387.66,257.27a17,17,0,0,1-2.82,4.87,19.51,19.51,0,0,1-3.48,3.32,24.41,24.41,0,0,1-3.46,2.22,39.19,39.19,0,0,1-6.54,2.73,53.91,53.91,0,0,1-6.17,1.59,105.13,105.13,0,0,1-11.82,1.65,202,202,0,0,1-22.74.43c-7.34-.31-14.62-.93-21.93-1.7s-14.61-1.76-21.91-3.24a3.19,3.19,0,0,1,0-6.26c7.3-1.48,14.6-2.44,21.91-3.24s14.62-1.39,21.9-1.71,14.22-.59,21-1.44q3.19-.36,6.24-.92c-3-1-6.11-1.87-9.21-2.7-4.95-1.5-10-2.61-15-3.88-2.52-.6-5.07-1.08-7.61-1.63s-5.07-1.09-7.64-1.5l-7.68-1.36L303,243.38l-3.87-.55-3.88-.44c-2.59-.28-5.17-.61-7.77-.86-10.38-1-20.82-1.52-31.29-1.73a432.89,432.89,0,0,0-62.78,3.69q-15.65,2.07-31.12,5.28c-5.15,1-10.28,2.25-15.38,3.52s-10.22,2.69-15.08,4.26l-2.45-6.7c5.18-1.95,10.23-3.6,15.39-5.19s10.32-3.06,15.53-4.39q15.6-4.11,31.49-7a444.43,444.43,0,0,1,64.27-7c10.81-.33,21.64-.31,32.48.16,2.71.12,5.42.32,8.13.48l4.06.25,4.06.37,8.12.77,8.09,1c2.71.3,5.4.74,8.09,1.17s5.39.81,8.07,1.31c5.35,1.06,10.74,2,16,3.28,1.65.35,3.28.73,4.92,1.13q-1.81-1.83-3.69-3.59-7.56-7.25-15.72-13.89c-.67-.56-1.36-1.1-2.05-1.63l-2.07-1.64c-1.41-1-2.79-2.15-4.22-3.16-.7-.53-1.41-1.06-2.13-1.56s-1.43-1-2.16-1.5l-2.17-1.48-2.1-1.38-.32-.21a3.66,3.66,0,0,1,2.69-6.66c1.12.22,2,.42,3,.67s1.9.48,2.81.79,1.85.59,2.76.91,1.82.63,2.72,1a99,99,0,0,1,10.47,4.8,129.52,129.52,0,0,1,19.22,12.51c1.49,1.19,3,2.35,4.45,3.61s2.89,2.5,4.3,3.78,2.78,2.62,4.15,3.95c.66.62,1.41,1.41,2.15,2.19s1.45,1.61,2.16,2.5a33.47,33.47,0,0,1,4,6.14c.3.6.59,1.26.86,1.92a21,21,0,0,1,.73,2.16,18,18,0,0,1,.73,5.13A16.39,16.39,0,0,1,387.66,257.27Z"/>
+  </g>
+
+</svg>

@@ -168,10 +168,10 @@ class GamepadGlyph extends StatefulWidget {
 
   static String _reverseAxis(String input) {
     switch (input) {
-      case 'dPadUpDown':
-        return 'dPadLeftRight';
-      case 'dPadLeftRight':
-        return 'dPadUpDown';
+      case 'dpUpDown':
+        return 'dpLeftRight';
+      case 'dpLeftRight':
+        return 'dpUpDown';
       case 'leftThumbstickLeftRight':
         return 'leftThumbstickUpDown';
       case 'leftThumbstickUpDown':
@@ -386,7 +386,9 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
       final separator = line.indexOf('=');
       if (separator <= 0 || separator == line.length - 1) continue;
       final assetName = line.substring(0, separator).trim();
-      final genericName = line.substring(separator + 1).trim();
+      final genericName = GamepadGlyph._snakeCase(
+        line.substring(separator + 1).trim(),
+      );
       if (assetName.isEmpty || genericName.isEmpty) continue;
       result.putIfAbsent(genericName, () => assetName);
     }

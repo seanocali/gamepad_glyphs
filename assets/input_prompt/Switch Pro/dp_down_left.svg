@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <title>Nintendo Switch Pro Controller D-pad — Down Left diagonal</title>
+
+  <path
+    d="M38 4
+       H62
+       Q66 4 66 8
+       V34
+       H92
+       Q96 34 96 38
+       V62
+       Q96 66 92 66
+       H66
+       V92
+       Q66 96 62 96
+       H38
+       Q34 96 34 92
+       V66
+       H8
+       Q4 66 4 62
+       V38
+       Q4 34 8 34
+       H34
+       V8
+       Q34 4 38 4
+       Z"
+    fill="#4E4E4E"
+    stroke="#111111"
+    stroke-width="4"
+    stroke-linejoin="round"/>
+
+  <path
+    d="M39 9 H61 V39 H91 V61 H61 V91 H39 V61 H9 V39 H39 Z"
+    fill="none"
+    stroke="#343434"
+    stroke-width="2"
+    stroke-linejoin="round"/>
+
+  <path d="M50 83 L43 72 H57 Z" fill="#9A9A9A"/>
+  <path d="M17 50 L28 43 V57 Z" fill="#9A9A9A"/>
+</svg>

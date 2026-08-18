@@ -23,18 +23,40 @@ void main() {
 
     expect(
       GamepadGlyph.assetPathFor(
-        input: 'dPadUpDown',
+        input: 'dpUpDown',
         device: device,
         reverseAxes: true,
       ),
-      'assets/input_prompt/Keyboard/d_pad_left_right.svg',
+      'assets/input_prompt/Keyboard/dp_left_right.svg',
     );
   });
 
   testWidgets('resolves a generic input through a folder map', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(
-        home: GamepadGlyph(input: 'l2', device: 'Switch Joy-Con'),
+        home: GamepadGlyph(input: 'lt', device: 'Switch Joy-Con'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SvgPicture), findsOneWidget);
+  });
+
+  testWidgets('loads the Switch Pro face-button glyphs', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: GamepadGlyph(input: 'Y', device: 'Switch Pro'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SvgPicture), findsOneWidget);
+  });
+
+  testWidgets('loads the Steam G2 face-button glyphs', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: GamepadGlyph(input: 'Y', device: 'Steam (G2)'),
       ),
     );
     await tester.pumpAndSettle();

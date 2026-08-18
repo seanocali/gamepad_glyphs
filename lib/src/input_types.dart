@@ -68,6 +68,29 @@ String deviceFromHardwareIds(
         4354 || 4418 => 'Steam (G1)',
         _ => 'Steam (G2)', // Steam G2 ids, if ever needed: 4866 || 4868
       };
+    case 5426: // Razer
+      return switch (productId) {
+        4103 || 4106 || 4107 || 4108 || 4100
+        || 4105 || 4352  => 'PS4',
+        _ => 'Xbox One',
+      };
+    case 12933: // Nacon
+      return switch (productId) {
+        1634 || 3352 || 3353 || 1553 || 3344 || 3336 => 'PS4',
+        _ => 'Xbox One',
+      };
+    case 3853: // Hori
+      return switch (productId) {
+        94 || 102 || 238 => 'PS4',
+        193 || 146 => 'Switch Pro',
+        _ => 'Xbox One',
+      };
+    case 11720: // 8bitdo
+      return switch (productId) {
+        24579 || 24585 || 24577 || 24578 || 10345
+        || 10346 => 'Switch Pro',
+        _ => 'Xbox One',
+      };
     default:
       return 'Xbox One';
   }
@@ -78,10 +101,8 @@ class InputDeviceTracker extends ValueNotifier<String> {
   InputDeviceTracker({
     String initial = 'Keyboard',
 
-    /// Additional exact VID/PID mappings. These override built-in mappings.
-    Map<int, Map<int, String>> additionalDevicesMap = const {},
-  }) : _additionalDevicesMap = additionalDevicesMap,
-       super(initial);
+    this._additionalDevicesMap = const {},
+  }) : super(initial);
 
   final Map<int, Map<int, String>> _additionalDevicesMap;
 
