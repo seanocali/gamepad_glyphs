@@ -22,8 +22,14 @@ class MethodChannelGamepadGlyphs extends GamepadGlyphsPlatform {
   }
 
   @override
-  Stream<InputDeviceEvent> get inputEvents => inputEventChannel
-      .receiveBroadcastStream()
+  Stream<InputDeviceEvent> inputEvents({
+    bool detectMouse = false,
+    bool detectTouch = false,
+  }) => inputEventChannel
+      .receiveBroadcastStream(<String, bool>{
+        'detectMouse': detectMouse,
+        'detectTouch': detectTouch,
+      })
       .where((event) => event is Map)
       .map(
         (event) =>

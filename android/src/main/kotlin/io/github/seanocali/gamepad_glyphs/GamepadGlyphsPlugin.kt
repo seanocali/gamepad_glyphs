@@ -28,12 +28,22 @@ class GamepadGlyphsPlugin :
     private lateinit var eventChannel: EventChannel
     private var eventSink: EventChannel.EventSink? = null
     private var activity: Activity? = null
+    private var detectMouse = false
+    private var detectTouch = false
 
     private val inputListener = object : View.OnKeyListener, View.OnGenericMotionListener {
         override fun onKey(view: View, keyCode: Int, event: KeyEvent): Boolean {
             if (event.action != KeyEvent.ACTION_DOWN) return false
-            val keyboard = (event.source and InputDevice.SOURCE_KEYBOARD) != 0
-            emitInput(event.device, keyboard)
+            val source = event.source
+            val keyboard = (source and InputDevice.SOURCE_KEYBOARD) != 0
+            val controller = source and (InputDevice.SOURCE_GAMEPAD or
+                InputDevice.SOURCE_JOYSTICK or InputDevice.SOURCE_DPAD)
+            val mouse = source and InputDevice.SOURCE_MOUSE
+            when {
+                keyboard -> emitInput(event.device, "keyboard")
+                controller != 0 -> emitInput(event.device, "gamepad")
+                detectMouse && mouse != 0 -> emitInput(event.device, "mouse")
+            }
             return false
         }
 
@@ -41,10 +51,27 @@ class GamepadGlyphsPlugin :
             val source = event.source
             val controller = source and (InputDevice.SOURCE_GAMEPAD or
                 InputDevice.SOURCE_JOYSTICK or InputDevice.SOURCE_DPAD)
-            if (controller == 0 || event.action != MotionEvent.ACTION_MOVE) return false
-            emitInput(event.device, false)
+            if (controller != 0 && event.action == MotionEvent.ACTION_MOVE) {
+                emitInput(event.device, "gamepad")
+                return false
+            }
+
+            val mouse = source and InputDevice.SOURCE_MOUSE
+            if (detectMouse && mouse != 0 && (event.action == MotionEvent.ACTION_MOVE ||
+                    event.action == MotionEvent.ACTION_SCROLL ||
+                    event.action == MotionEvent.ACTION_BUTTON_PRESS)) {
+                emitInput(event.device, "mouse")
+            }
             return false
         }
+    }
+
+    private val touchListener = View.OnTouchListener { _, event ->
+        val touch = event.source and InputDevice.SOURCE_TOUCHSCREEN
+        if (detectTouch && touch != 0 && event.action == MotionEvent.ACTION_DOWN) {
+            emitInput(event.device, "touch")
+        }
+        false
     }
 
     override fun onAttachedToEngine(flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
@@ -72,12 +99,17 @@ class GamepadGlyphsPlugin :
     }
 
     override fun onListen(arguments: Any?, events: EventChannel.EventSink) {
+        val options = arguments as? Map<*, *>
+        detectMouse = options?.get("detectMouse") as? Boolean ?: false
+        detectTouch = options?.get("detectTouch") as? Boolean ?: false
         eventSink = events
         attachInputListeners()
     }
 
     override fun onCancel(arguments: Any?) {
         eventSink = null
+        detectMouse = false
+        detectTouch = false
         detachInputListeners()
     }
 
@@ -105,20 +137,30 @@ class GamepadGlyphsPlugin :
         val view = activity?.window?.decorView ?: return
         view.setOnKeyListener(inputListener)
         view.setOnGenericMotionListener(inputListener)
+        view.setOnTouchListener(touchListener)
     }
 
     private fun detachInputListeners() {
         val view = activity?.window?.decorView ?: return
         view.setOnKeyListener(null)
         view.setOnGenericMotionListener(null)
+        view.setOnTouchListener(null)
     }
 
-    private fun emitInput(device: InputDevice?, keyboard: Boolean) {
+    private fun emitInput(device: InputDevice?, kind: String) {
         val sink = eventSink ?: return
-        if (keyboard || device == null || device.isVirtual) {
-            sink.success(mapOf("vendorId" to null, "productId" to null))
+        if (kind == "keyboard" || device == null || device.isVirtual) {
+            sink.success(mapOf(
+                "vendorId" to null,
+                "productId" to null,
+                "kind" to kind,
+            ))
             return
         }
-        sink.success(mapOf("vendorId" to device.vendorId, "productId" to device.productId))
+        sink.success(mapOf(
+            "vendorId" to device.vendorId,
+            "productId" to device.productId,
+            "kind" to kind,
+        ))
     }
 }

@@ -8,9 +8,15 @@ class GamepadGlyphs {
   GamepadGlyphs({
     InputDeviceTracker? inputDevices,
     Map<int, Map<int, String>> additionalDevicesMap = const {},
+    bool detectMouse = false,
+    bool detectTouch = false,
   }) : inputDevices =
            inputDevices ??
-           InputDeviceTracker(additionalDevicesMap: additionalDevicesMap);
+           InputDeviceTracker(
+             additionalDevicesMap: additionalDevicesMap,
+             detectMouse: detectMouse,
+             detectTouch: detectTouch,
+           );
 
   /// Shared last-input state for prompts owned by this plugin instance.
   final InputDeviceTracker inputDevices;
@@ -21,7 +27,12 @@ class GamepadGlyphs {
 
   /// Starts updating [inputDevices] from the current platform's input events.
   void startInputTracking() {
-    inputDevices.bind(GamepadGlyphsPlatform.instance.inputEvents);
+    inputDevices.bind(
+      GamepadGlyphsPlatform.instance.inputEvents(
+        detectMouse: inputDevices.detectMouse,
+        detectTouch: inputDevices.detectTouch,
+      ),
+    );
   }
 
   /// Stops updating [inputDevices] from platform input events.

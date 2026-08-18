@@ -30,9 +30,12 @@ class GamepadGlyphsPlugin : public flutter::Plugin {
       std::unique_ptr<flutter::MethodResult<flutter::EncodableValue>> result);
 
   void SetInputEventSink(
-      std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> sink);
+      std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> sink,
+      bool detect_mouse, bool detect_touch);
   void ClearInputEventSink();
-  void EmitInputEvent(unsigned long vendor_id, unsigned long product_id);
+  void EmitInputEvent(unsigned long vendor_id, unsigned long product_id,
+                      const char* kind = "gamepad");
+  void EmitInputEventForRawDevice(HANDLE device, const char* kind);
   void EmitKeyboardEvent();
   void PollGameControllers();
   void RegisterInputDevices(HWND window);
@@ -47,6 +50,9 @@ class GamepadGlyphsPlugin : public flutter::Plugin {
   int window_proc_delegate_id_;
   HWND input_window_;
   bool input_devices_registered_;
+  bool mouse_input_registered_;
+  bool detect_mouse_;
+  bool detect_touch_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> input_event_sink_;
 };
 

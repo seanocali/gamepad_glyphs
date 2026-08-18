@@ -112,6 +112,22 @@ final gamepadGlyphs = GamepadGlyphs(
 );
 ```
 
+## Optional mouse and touch detection
+
+Mouse and touch input are ignored by default. Opt in when creating
+`GamepadGlyphs` to send their vendor/product IDs through the same input-event
+pipeline as keyboard and controller input. Each `InputDeviceEvent` includes a
+typed `kind`: `keyboard`, `mouse`, `touch`, or `gamepad`.
+The latest category is available as `gamepadGlyphs.inputDevices.inputKind`.
+
+```dart
+final gamepadGlyphs = GamepadGlyphs(
+  detectMouse: true,
+  detectTouch: true,
+);
+gamepadGlyphs.startInputTracking();
+```
+
 ## Getting Started
 
 This project is a starting point for a Flutter

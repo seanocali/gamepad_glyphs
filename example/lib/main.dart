@@ -108,8 +108,7 @@ class _DemoContent extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         const Text(
-          'Alternate between keyboard input and gamepad input\n'
-          'and observe the behavior in the box below',
+          'Click to Simulate Input Device',
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 20, fontStyle: FontStyle.italic),
         ),
@@ -123,15 +122,15 @@ class _DemoContent extends StatelessWidget {
                   Column(
                     children: [
                       _SimulationButton(
-                        label: 'Simulate Xbox 360 Input',
+                        label: 'Xbox 360',
                         onPressed: () => onDeviceSelected(1118, 654),
                       ),
                       _SimulationButton(
-                        label: 'Simulate Xbox One Input',
+                        label: 'Xbox One',
                         onPressed: () => onDeviceSelected(1118, 721),
                       ),
                       _SimulationButton(
-                        label: 'Simulate Xbox Series X|S Input',
+                        label: 'Xbox Series X|S',
                         onPressed: () => onDeviceSelected(1118, 2834),
                       ),
                     ],
@@ -139,15 +138,15 @@ class _DemoContent extends StatelessWidget {
                   Column(
                     children: [
                       _SimulationButton(
-                        label: 'Simulate PS3 DualShock Input',
+                        label: 'DualShock 3 (PS3)',
                         onPressed: () => onDeviceSelected(1356, 616),
                       ),
                       _SimulationButton(
-                        label: 'Simulate PS4 DualShock Input',
+                        label: 'DualShock 4 (PS4)',
                         onPressed: () => onDeviceSelected(1356, 1476),
                       ),
                       _SimulationButton(
-                        label: 'Simulate PS5 DualSense Input',
+                        label: 'DualSense (PS5)',
                         onPressed: () => onDeviceSelected(1356, 3302),
                       ),
                     ],
@@ -155,15 +154,15 @@ class _DemoContent extends StatelessWidget {
                   Column(
                     children: [
                       _SimulationButton(
-                        label: 'Simulate Switch Joy-Con Input',
+                        label: 'Switch Joy-Con',
                         onPressed: () => onDeviceSelected(1406, 8206),
                       ),
                       _SimulationButton(
-                        label: 'Simulate Switch Pro Input',
+                        label: 'Switch Pro',
                         onPressed: () => onDeviceSelected(1406, 8201),
                       ),
                       _SimulationButton(
-                        label: 'Simulate Arcade Input',
+                        label: 'Arcade Fight Stick',
                         onPressed: () => onDeviceSelected(3090, 3120),
                       ),
                     ],
@@ -171,15 +170,15 @@ class _DemoContent extends StatelessWidget {
                   Column(
                     children: [
                       _SimulationButton(
-                        label: 'Simulate Steam (G1) Input',
+                        label: 'Steam (G1)',
                         onPressed: () => onDeviceSelected(10462, 4354),
                       ),
                       _SimulationButton(
-                        label: 'Simulate Steam (G2) Input',
+                        label: 'Steam (G2)/Steam Deck',
                         onPressed: () => onDeviceSelected(10462, 4866),
                       ),
                       _SimulationButton(
-                        label: 'Simulate Keyboard Input',
+                        label: 'Keyboard',
                         onPressed: () => onDeviceSelected(null, null),
                       ),
                     ],

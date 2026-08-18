@@ -30,6 +30,17 @@ constexpr UINT_PTR kControllerPollingTimerId = 0x4759;
 constexpr UINT kControllerPollingIntervalMs = 50;
 constexpr double kGamepadAxisDeadZone = 0.1;
 
+bool OptionEnabled(const flutter::EncodableValue* arguments,
+                   const char* option) {
+  if (arguments == nullptr) return false;
+  const auto* options = std::get_if<flutter::EncodableMap>(arguments);
+  if (options == nullptr) return false;
+  const auto value = options->find(flutter::EncodableValue(option));
+  if (value == options->end()) return false;
+  const auto* enabled = std::get_if<bool>(&value->second);
+  return enabled != nullptr && *enabled;
+}
+
 class InputEventStreamHandler
     : public flutter::StreamHandler<flutter::EncodableValue> {
  public:
@@ -42,7 +53,9 @@ class InputEventStreamHandler
       const flutter::EncodableValue* arguments,
       std::unique_ptr<flutter::EventSink<flutter::EncodableValue>>&& events)
       override {
-    plugin_->SetInputEventSink(std::move(events));
+    plugin_->SetInputEventSink(
+        std::move(events), OptionEnabled(arguments, "detectMouse"),
+        OptionEnabled(arguments, "detectTouch"));
     return nullptr;
   }
 
@@ -88,14 +101,20 @@ GamepadGlyphsPlugin::GamepadGlyphsPlugin()
     : registrar_(nullptr),
       window_proc_delegate_id_(0),
       input_window_(nullptr),
-      input_devices_registered_(false) {}
+      input_devices_registered_(false),
+      mouse_input_registered_(false),
+      detect_mouse_(false),
+      detect_touch_(false) {}
 
 GamepadGlyphsPlugin::GamepadGlyphsPlugin(
     flutter::PluginRegistrarWindows* registrar)
     : registrar_(registrar),
       window_proc_delegate_id_(0),
       input_window_(nullptr),
-      input_devices_registered_(false) {
+      input_devices_registered_(false),
+      mouse_input_registered_(false),
+      detect_mouse_(false),
+      detect_touch_(false) {
   window_proc_delegate_id_ = registrar_->RegisterTopLevelWindowProcDelegate(
       [this](HWND hwnd, UINT message, WPARAM wparam, LPARAM lparam) {
         return HandleWindowMessage(hwnd, message, wparam, lparam);
@@ -132,22 +151,29 @@ void GamepadGlyphsPlugin::HandleMethodCall(
 }
 
 void GamepadGlyphsPlugin::SetInputEventSink(
-    std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> sink) {
+    std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> sink,
+    bool detect_mouse, bool detect_touch) {
   input_event_sink_ = std::move(sink);
+  detect_mouse_ = detect_mouse;
+  detect_touch_ = detect_touch;
+  RegisterInputDevices(input_window_);
 }
 
 void GamepadGlyphsPlugin::ClearInputEventSink() {
   input_event_sink_.reset();
+  detect_mouse_ = false;
+  detect_touch_ = false;
 }
 
 void GamepadGlyphsPlugin::EmitInputEvent(unsigned long vendor_id,
-                                         unsigned long product_id) {
+                                         unsigned long product_id,
+                                         const char* kind) {
   if (input_event_sink_ == nullptr) {
     return;
   }
 
-  std::fprintf(stderr, "gamepad_glyphs event: controller %lu:%lu\n",
-               vendor_id, product_id);
+  std::fprintf(stderr, "gamepad_glyphs event: %s %lu:%lu\n", kind, vendor_id,
+               product_id);
   std::fflush(stderr);
 
   flutter::EncodableMap event;
@@ -155,7 +181,41 @@ void GamepadGlyphsPlugin::EmitInputEvent(unsigned long vendor_id,
       flutter::EncodableValue(static_cast<int64_t>(vendor_id));
   event[flutter::EncodableValue("productId")] =
       flutter::EncodableValue(static_cast<int64_t>(product_id));
+  event[flutter::EncodableValue("kind")] = flutter::EncodableValue(kind);
   input_event_sink_->Success(flutter::EncodableValue(event));
+}
+
+void GamepadGlyphsPlugin::EmitInputEventForRawDevice(HANDLE device,
+                                                      const char* kind) {
+  UINT name_size = 0;
+  if (device == nullptr ||
+      GetRawInputDeviceInfo(device, RIDI_DEVICENAME, nullptr, &name_size) ==
+          static_cast<UINT>(-1) ||
+      name_size == 0) {
+    return;
+  }
+
+  std::wstring name(name_size, L'\0');
+  if (GetRawInputDeviceInfo(device, RIDI_DEVICENAME, name.data(),
+                            &name_size) == static_cast<UINT>(-1)) {
+    return;
+  }
+
+  const auto vendor_marker = name.find(L"VID_");
+  const auto product_marker = name.find(L"PID_");
+  if (vendor_marker == std::wstring::npos ||
+      product_marker == std::wstring::npos) {
+    return;
+  }
+
+  try {
+    const auto vendor_id = std::stoul(name.substr(vendor_marker + 4, 4),
+                                      nullptr, 16);
+    const auto product_id = std::stoul(name.substr(product_marker + 4, 4),
+                                       nullptr, 16);
+    EmitInputEvent(vendor_id, product_id, kind);
+  } catch (const std::exception&) {
+  }
 }
 
 void GamepadGlyphsPlugin::EmitKeyboardEvent() {
@@ -169,6 +229,8 @@ void GamepadGlyphsPlugin::EmitKeyboardEvent() {
   flutter::EncodableMap event;
   event[flutter::EncodableValue("vendorId")] = flutter::EncodableValue();
   event[flutter::EncodableValue("productId")] = flutter::EncodableValue();
+  event[flutter::EncodableValue("kind")] =
+      flutter::EncodableValue("keyboard");
   input_event_sink_->Success(flutter::EncodableValue(event));
 }
 
@@ -183,6 +245,17 @@ std::optional<LRESULT> GamepadGlyphsPlugin::HandleWindowMessage(
 
   if (message == WM_TIMER && wparam == kControllerPollingTimerId) {
     PollGameControllers();
+    return std::nullopt;
+  }
+
+  if (message == WM_POINTERDOWN && detect_touch_) {
+    const auto pointer_id = GET_POINTERID_WPARAM(wparam);
+    POINTER_INPUT_TYPE pointer_type = PT_POINTER;
+    POINTER_INFO pointer_info = {};
+    if (GetPointerType(pointer_id, &pointer_type) && pointer_type == PT_TOUCH &&
+        GetPointerInfo(pointer_id, &pointer_info)) {
+      EmitInputEventForRawDevice(pointer_info.sourceDevice, "touch");
+    }
     return std::nullopt;
   }
 
@@ -209,29 +282,35 @@ std::optional<LRESULT> GamepadGlyphsPlugin::HandleWindowMessage(
     if ((raw_input->data.keyboard.Flags & RI_KEY_BREAK) == 0) {
       EmitKeyboardEvent();
     }
+  } else if (raw_input->header.dwType == RIM_TYPEMOUSE && detect_mouse_) {
+    EmitInputEventForRawDevice(raw_input->header.hDevice, "mouse");
   }
   return std::nullopt;
 }
 
 void GamepadGlyphsPlugin::RegisterInputDevices(HWND window) {
-  if (input_devices_registered_ || window == nullptr) {
-    return;
-  }
-
-  // Raw Input is used only for keyboard key-down events. Controllers are
-  // polled through Windows.Gaming.Input so changing HID motion, battery, and
-  // status reports cannot masquerade as user input.
-  RAWINPUTDEVICE devices[] = {{0x01, 0x06, RIDEV_INPUTSINK, window}};
-
-  if (!RegisterRawInputDevices(devices, ARRAYSIZE(devices),
-                               sizeof(RAWINPUTDEVICE))) {
-    return;
-  }
-
+  if (window == nullptr) return;
   input_window_ = window;
-  input_devices_registered_ = true;
-  SetTimer(input_window_, kControllerPollingTimerId,
-           kControllerPollingIntervalMs, nullptr);
+
+  if (!input_devices_registered_) {
+    // Raw Input is used only for keyboard key-down events. Controllers are
+    // polled through Windows.Gaming.Input so changing HID motion, battery,
+    // and status reports cannot masquerade as user input.
+    RAWINPUTDEVICE keyboard = {0x01, 0x06, RIDEV_INPUTSINK, window};
+    if (!RegisterRawInputDevices(&keyboard, 1, sizeof(keyboard))) {
+      return;
+    }
+    input_devices_registered_ = true;
+    SetTimer(input_window_, kControllerPollingTimerId,
+             kControllerPollingIntervalMs, nullptr);
+  }
+
+  if (detect_mouse_ && !mouse_input_registered_) {
+    RAWINPUTDEVICE mouse = {0x01, 0x02, RIDEV_INPUTSINK, window};
+    if (RegisterRawInputDevices(&mouse, 1, sizeof(mouse))) {
+      mouse_input_registered_ = true;
+    }
+  }
 }
 
 void GamepadGlyphsPlugin::PollGameControllers() {

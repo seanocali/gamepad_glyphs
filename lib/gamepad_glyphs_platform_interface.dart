@@ -28,6 +28,11 @@ abstract class GamepadGlyphsPlatform extends PlatformInterface {
     throw UnimplementedError('platformVersion() has not been implemented.');
   }
 
-  /// Emits the most recently observed keyboard or controller device.
-  Stream<InputDeviceEvent> get inputEvents => const Stream.empty();
+  /// Emits the most recently observed input device.
+  ///
+  /// Mouse and touch input are excluded unless explicitly requested.
+  Stream<InputDeviceEvent> inputEvents({
+    bool detectMouse = false,
+    bool detectTouch = false,
+  }) => const Stream.empty();
 }

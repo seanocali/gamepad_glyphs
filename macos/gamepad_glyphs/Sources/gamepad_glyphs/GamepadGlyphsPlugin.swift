@@ -5,6 +5,8 @@ import IOKit.hid
 public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   private var eventSink: FlutterEventSink?
   private var hidManager: IOHIDManager?
+  private var detectMouse = false
+  private var detectTouch = false
 
   deinit {
     if let manager = hidManager {
@@ -32,12 +34,17 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
   }
 
   public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+    let options = arguments as? [String: Any]
+    detectMouse = options?["detectMouse"] as? Bool ?? false
+    detectTouch = options?["detectTouch"] as? Bool ?? false
     eventSink = events
     return nil
   }
 
   public func onCancel(withArguments arguments: Any?) -> FlutterError? {
     eventSink = nil
+    detectMouse = false
+    detectTouch = false
     return nil
   }
 
@@ -53,38 +60,33 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
     guard let sink = eventSink else { return }
     let element = IOHIDValueGetElement(value)
     let usagePage = IOHIDElementGetUsagePage(element)
-    let usage = IOHIDElementGetUsage(element)
 
     let keyboard = usagePage == UInt32(kHIDPage_KeyboardOrKeypad)
-    let controller = usagePage == UInt32(kHIDPage_GenericDesktop) ||
-      usagePage == UInt32(kHIDPage_Button)
-    guard keyboard || controller else { return }
+    let device = IOHIDElementGetDevice(element)
+    let primaryUsagePage = propertyInt(device, key: kIOHIDPrimaryUsagePageKey)
+    let primaryUsage = propertyInt(device, key: kIOHIDPrimaryUsageKey)
+    let controller = primaryUsagePage == Int(kHIDPage_GenericDesktop) &&
+      (primaryUsage == Int(kHIDUsage_GD_GamePad) ||
+       primaryUsage == Int(kHIDUsage_GD_Joystick))
+    let mouse = primaryUsagePage == Int(kHIDPage_GenericDesktop) &&
+      primaryUsage == Int(kHIDUsage_GD_Mouse)
+    let touch = primaryUsagePage == 0x0D &&
+      (primaryUsage == 0x04 || primaryUsage == 0x05)
+    guard keyboard || controller || (detectMouse && mouse) ||
+      (detectTouch && touch) else { return }
+    let kind = keyboard ? "keyboard" : controller ? "gamepad" : mouse ? "mouse" : "touch"
 
     if keyboard {
-      sink(["vendorId": NSNull(), "productId": NSNull()])
+      sink(["vendorId": NSNull(), "productId": NSNull(), "kind": kind])
       return
     }
 
-    // Ignore generic desktop pointer/mouse events. Gamepad axes and buttons
-    // use the gamepad/joystick usages or the button usage page.
-    if usagePage == UInt32(kHIDPage_GenericDesktop) &&
-      usage != UInt32(kHIDUsage_GD_GamePad) &&
-      usage != UInt32(kHIDUsage_GD_Joystick) &&
-      usage != UInt32(kHIDUsage_GD_X) &&
-      usage != UInt32(kHIDUsage_GD_Y) &&
-      usage != UInt32(kHIDUsage_GD_Z) &&
-      usage != UInt32(kHIDUsage_GD_Rx) &&
-      usage != UInt32(kHIDUsage_GD_Ry) &&
-      usage != UInt32(kHIDUsage_GD_Rz) {
-      return
-    }
-
-    let device = IOHIDElementGetDevice(element)
     let vendorId = propertyInt(device, key: kIOHIDVendorIDKey)
     let productId = propertyInt(device, key: kIOHIDProductIDKey)
     sink([
       "vendorId": vendorId.map { $0 as Any } ?? NSNull(),
       "productId": productId.map { $0 as Any } ?? NSNull(),
+      "kind": kind,
     ])
   }
 

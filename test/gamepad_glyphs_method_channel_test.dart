@@ -32,20 +32,51 @@ void main() {
 
   test('inputEvents maps native device events', () async {
     final inputChannel = const EventChannel('gamepad_glyphs/input_events');
+    Object? receivedArguments;
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockStreamHandler(
           inputChannel,
           MockStreamHandler.inline(
             onListen: (arguments, events) {
-              events.success(<String, int>{'vendorId': 1118, 'productId': 721});
+              receivedArguments = arguments;
+              events.success(<String, Object>{
+                'vendorId': 1118,
+                'productId': 721,
+                'kind': 'mouse',
+              });
               events.endOfStream();
             },
           ),
         );
 
-    final event = await platform.inputEvents.first;
+    final event = await platform
+        .inputEvents(detectMouse: true, detectTouch: true)
+        .first;
     expect(event.vendorId, 1118);
     expect(event.productId, 721);
+    expect(event.kind, InputDeviceKind.mouse);
+    expect(receivedArguments, <String, bool>{
+      'detectMouse': true,
+      'detectTouch': true,
+    });
+  });
+
+  test('InputDeviceEvent parses every native input kind', () {
+    for (final entry in <String, InputDeviceKind>{
+      'keyboard': InputDeviceKind.keyboard,
+      'mouse': InputDeviceKind.mouse,
+      'touch': InputDeviceKind.touch,
+      'gamepad': InputDeviceKind.gamepad,
+    }.entries) {
+      expect(
+        InputDeviceEvent.fromMap(<String, Object>{
+          'vendorId': 1,
+          'productId': 2,
+          'kind': entry.key,
+        }).kind,
+        entry.value,
+      );
+    }
   });
 
   test('additional device mappings override built-in mappings', () {
@@ -69,5 +100,24 @@ void main() {
 
   test('maps the Arcade controller IDs to Arcade', () {
     expect(deviceFromHardwareIds(3090, 3120), 'Arcade');
+  });
+
+  test('maps mouse and touch input by their native category', () {
+    expect(
+      deviceFromHardwareIds(
+        1133,
+        49274,
+        inputKind: InputDeviceKind.mouse,
+      ),
+      'Mouse',
+    );
+    expect(
+      deviceFromHardwareIds(
+        null,
+        null,
+        inputKind: InputDeviceKind.touch,
+      ),
+      'Touch',
+    );
   });
 }

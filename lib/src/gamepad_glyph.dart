@@ -235,11 +235,13 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
 
   void _retainAutomaticTracking() {
     if (_automaticUsers++ == 0) {
-      _automaticSubscription = GamepadGlyphsPlatform.instance.inputEvents
+      _automaticSubscription = GamepadGlyphsPlatform.instance
+          .inputEvents()
           .listen((event) {
             _automaticTracker.updateHardwareIds(
               event.vendorId,
               event.productId,
+              inputKind: event.kind,
             );
           });
     }
