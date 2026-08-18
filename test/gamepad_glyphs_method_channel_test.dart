@@ -61,4 +61,13 @@ void main() {
     );
     expect(deviceFromHardwareIds(1118, 721), 'Xbox One');
   });
+
+  test('maps known Xbox controller IDs to their device families', () {
+    expect(deviceFromHardwareIds(1118, 654), 'Xbox 360');
+    expect(deviceFromHardwareIds(1118, 721), 'Xbox One');
+  });
+
+  test('maps the Arcade controller IDs to Arcade', () {
+    expect(deviceFromHardwareIds(3090, 3120), 'Arcade');
+  });
 }

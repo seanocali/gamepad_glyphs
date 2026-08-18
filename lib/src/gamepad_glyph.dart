@@ -52,6 +52,7 @@ class GamepadGlyph extends StatefulWidget {
   /// The string is matched directly against a style folder beneath the active
   /// hardware folder. The `default` style uses files directly in the hardware
   /// folder; named styles use a subfolder and fall back to the hardware root.
+  /// A named style without its own `map.conf` inherits the hardware root map.
   final String style;
 
   /// Retained as an ignored compatibility parameter. Use [style] instead.
@@ -144,7 +145,7 @@ class GamepadGlyph extends StatefulWidget {
           ];
     final stylePath = style == 'default' ? '' : '/$style';
     return extension
-        .map((suffix) => '$assetRoot/${device}$stylePath/$keyName$suffix')
+        .map((suffix) => '$assetRoot/$device$stylePath/$keyName$suffix')
         .toList(growable: false);
   }
 
@@ -190,7 +191,10 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
   static final _automaticTracker = InputDeviceTracker(initial: 'Xbox One');
   static StreamSubscription<InputDeviceEvent>? _automaticSubscription;
   static int _automaticUsers = 0;
-  static final _glyphMaps = <String, Future<Map<String, String>>>{};
+  static final _glyphMaps = <String, _GlyphMap>{};
+  static final _glyphMapLoads = <String, Future<_GlyphMap>>{};
+  static final _assetManifest = AssetManifest.loadFromAssetBundle(rootBundle);
+  static final _resolvedAssetPaths = <String, String>{};
 
   bool _usesAutomaticTracking = false;
 
@@ -252,7 +256,7 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
   @override
   Widget build(BuildContext context) {
     final fixedType = widget.forceDeviceType;
-    final fixedDevice = fixedType == null ? widget.device : fixedType;
+    final fixedDevice = fixedType ?? widget.device;
     final listenable = fixedType == null
         ? widget.deviceListenable ??
               (_shouldUseAutomaticTracking ? _automaticTracker : null)
@@ -295,7 +299,7 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
             alignment: widget.alignment,
             errorBuilder: (context, error, stackTrace) =>
                 SizedBox(width: widget.width, height: widget.height),
-            semanticsLabel: '${currentDevice} ${widget.input} input',
+            semanticsLabel: '$currentDevice ${widget.input} input',
           );
         }
         return Image.memory(
@@ -306,7 +310,7 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
           alignment: widget.alignment,
           errorBuilder: (context, error, stackTrace) =>
               SizedBox(width: widget.width, height: widget.height),
-          semanticLabel: '${currentDevice} ${widget.input} input',
+          semanticLabel: '$currentDevice ${widget.input} input',
         );
       },
     );
@@ -330,6 +334,11 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
     final styles = style == 'default'
         ? <String>['default']
         : <String>[style, 'default'];
+    final usePluginAssets = assetRoot == GamepadGlyph.defaultAssetRoot;
+    final rootGlyphMap = await _loadGlyphMap(
+      _assetFolder(assetRoot: assetRoot, device: device, style: 'default'),
+      usePluginAssets,
+    );
 
     for (final candidateStyle in styles) {
       final folder = _assetFolder(
@@ -337,10 +346,12 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
         device: device,
         style: candidateStyle,
       );
-      final glyphMap = await _loadGlyphMap(
-        folder,
-        assetRoot == GamepadGlyph.defaultAssetRoot,
-      );
+      final styleGlyphMap = candidateStyle == 'default'
+          ? rootGlyphMap
+          : await _loadGlyphMap(folder, usePluginAssets);
+      final glyphMap = styleGlyphMap.exists
+          ? styleGlyphMap.entries
+          : rootGlyphMap.entries;
       final assetName = glyphMap[genericName] ?? genericName;
       final paths = GamepadGlyph._assetPathsForStyle(
         device: device,
@@ -350,10 +361,7 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
       );
 
       for (final path in paths) {
-        final bytes = await _loadAsset(
-          path,
-          usePluginAssets: assetRoot == GamepadGlyph.defaultAssetRoot,
-        );
+        final bytes = await _loadAsset(path, usePluginAssets: usePluginAssets);
         if (bytes != null) return _LoadedGlyph(path, bytes);
       }
     }
@@ -366,17 +374,30 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
     required String style,
   }) => '$assetRoot/$device${style == 'default' ? '' : '/$style'}';
 
-  static Future<Map<String, String>> _loadGlyphMap(
-    String folder,
-    bool usePluginAssets,
-  ) => _glyphMaps.putIfAbsent(folder, () async {
-    final contents = await _loadAsset(
-      '$folder/map.conf',
-      usePluginAssets: usePluginAssets,
-    );
-    if (contents == null) return const <String, String>{};
-    return _parseGlyphMap(String.fromCharCodes(contents));
-  });
+  static Future<_GlyphMap> _loadGlyphMap(String folder, bool usePluginAssets) {
+    final cachedMap = _glyphMaps[folder];
+    if (cachedMap != null) return Future.value(cachedMap);
+
+    final loadingMap = _glyphMapLoads.putIfAbsent(folder, () async {
+      final contents = await _loadAsset(
+        '$folder/map.conf',
+        usePluginAssets: usePluginAssets,
+      );
+      if (contents == null) {
+        return const _GlyphMap(exists: false, entries: <String, String>{});
+      }
+      return _GlyphMap(
+        exists: true,
+        entries: _parseGlyphMap(String.fromCharCodes(contents)),
+      );
+    });
+
+    return loadingMap.then((map) {
+      _glyphMapLoads.remove(folder);
+      _glyphMaps[folder] = map;
+      return map;
+    });
+  }
 
   static Map<String, String> _parseGlyphMap(String contents) {
     final result = <String, String>{};
@@ -403,12 +424,23 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
       final assetPath = usePluginAssets
           ? 'packages/gamepad_glyphs/$path'
           : path;
-      final data = await rootBundle.load(assetPath);
+      final resolvedPath = await _resolveAssetPath(assetPath);
+      final data = await rootBundle.load(resolvedPath);
       return data.buffer.asUint8List();
     } catch (_) {
       // The file is optional; callers provide the fallback order.
     }
     return null;
+  }
+
+  static Future<String> _resolveAssetPath(String assetPath) async {
+    final normalizedPath = assetPath.toLowerCase();
+    return _resolvedAssetPaths[normalizedPath] ??= (await _assetManifest)
+        .listAssets()
+        .firstWhere(
+          (candidate) => candidate.toLowerCase() == normalizedPath,
+          orElse: () => assetPath,
+        );
   }
 }
 
@@ -417,4 +449,11 @@ class _LoadedGlyph {
 
   final String path;
   final Uint8List bytes;
+}
+
+class _GlyphMap {
+  const _GlyphMap({required this.exists, required this.entries});
+
+  final bool exists;
+  final Map<String, String> entries;
 }

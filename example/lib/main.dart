@@ -123,28 +123,60 @@ class _DemoContent extends StatelessWidget {
                   Column(
                     children: [
                       _SimulationButton(
-                        label: 'Simulate Xbox 360 Gamepad Input',
-                        onPressed: () => onDeviceSelected(1118, 702),
+                        label: 'Simulate Xbox 360 Input',
+                        onPressed: () => onDeviceSelected(1118, 654),
                       ),
                       _SimulationButton(
-                        label: 'Simulate Xbox One Gamepad Input',
+                        label: 'Simulate Xbox One Input',
                         onPressed: () => onDeviceSelected(1118, 721),
                       ),
                       _SimulationButton(
-                        label: 'Simulate PlayStation 4 DualShock Input',
-                        onPressed: () => onDeviceSelected(1356, 1476),
+                        label: 'Simulate Xbox Series X|S Input',
+                        onPressed: () => onDeviceSelected(1118, 2834),
                       ),
                     ],
                   ),
                   Column(
                     children: [
                       _SimulationButton(
-                        label: 'Simulate PlayStation 5 DualSense Input',
-                        onPressed: () => onDeviceSelected(1356, 3302),
+                        label: 'Simulate PS3 DualShock Input',
+                        onPressed: () => onDeviceSelected(1356, 616),
                       ),
                       _SimulationButton(
-                        label: 'Simulate Nintendo Switch Joy-Con Input',
+                        label: 'Simulate PS4 DualShock Input',
+                        onPressed: () => onDeviceSelected(1356, 1476),
+                      ),
+                      _SimulationButton(
+                        label: 'Simulate PS5 DualSense Input',
+                        onPressed: () => onDeviceSelected(1356, 3302),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      _SimulationButton(
+                        label: 'Simulate Switch Joy-Con Input',
                         onPressed: () => onDeviceSelected(1406, 8206),
+                      ),
+                      _SimulationButton(
+                        label: 'Simulate Switch Pro Input',
+                        onPressed: () => onDeviceSelected(1406, 8201),
+                      ),
+                      _SimulationButton(
+                        label: 'Simulate Arcade Input',
+                        onPressed: () => onDeviceSelected(3090, 3120),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    children: [
+                      _SimulationButton(
+                        label: 'Simulate Steam (G1) Input',
+                        onPressed: () => onDeviceSelected(10462, 4354),
+                      ),
+                      _SimulationButton(
+                        label: 'Simulate Steam (G2) Input',
+                        onPressed: () => onDeviceSelected(10462, 4866),
                       ),
                       _SimulationButton(
                         label: 'Simulate Keyboard Input',
@@ -164,39 +196,97 @@ class _DemoContent extends StatelessWidget {
             border: Border.all(color: Colors.black, width: 4),
             borderRadius: BorderRadius.circular(30),
           ),
-          child: Column(
-            children: [
-              _PromptRow(
-                label: 'Change Selection',
-                input: 'ls_up_down',
-                deviceListenable: inputDevices,
-              ),
-              _PromptRow(
-                label: 'Change Mode',
-                input: 'lb_rb',
-                deviceListenable: inputDevices,
-              ),
-              _PromptRow(
-                label: 'Help',
-                input: 'north',
-                deviceListenable: inputDevices,
-              ),
-              _PromptRow(
-                label: 'More Info',
-                input: 'west',
-                deviceListenable: inputDevices,
-              ),
-              _PromptRow(
-                label: 'Go Back',
-                input: 'east',
-                deviceListenable: inputDevices,
-              ),
-              _PromptRow(
-                label: 'Select Item',
-                input: 'south',
-                deviceListenable: inputDevices,
-              ),
-            ],
+          child: SizedBox(
+            width: 780,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  width: 390,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 30),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _PromptRow(
+                          label: 'Change Selection',
+                          input: 'ls_up_down',
+                          deviceListenable: inputDevices,
+                        ),
+                        _PromptRow(
+                          label: 'Change Mode',
+                          input: 'lb_rb',
+                          deviceListenable: inputDevices,
+                        ),
+                        _PromptRow(
+                          label: 'Help',
+                          input: 'Y',
+                          deviceListenable: inputDevices,
+                        ),
+                        _PromptRow(
+                          label: 'More Info',
+                          input: 'X',
+                          deviceListenable: inputDevices,
+                        ),
+                        _PromptRow(
+                          label: 'Go Back',
+                          input: 'B',
+                          deviceListenable: inputDevices,
+                        ),
+                        _PromptRow(
+                          label: 'Select Item',
+                          input: 'A',
+                          deviceListenable: inputDevices,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  width: 390,
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: 30),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        _PromptRow(
+                          label: 'Scroll',
+                          input: 'rs_left_right',
+                          deviceListenable: inputDevices,
+                        ),
+                        _PromptRow(
+                          label: 'Skip',
+                          input: 'rs_cw',
+                          deviceListenable: inputDevices,
+                        ),
+                        _PromptRow(
+                          label: 'Cycle',
+                          input: 'dp',
+                          deviceListenable: inputDevices,
+                        ),
+                        _PromptRow(
+                          label: 'Jump',
+                          input: 'lt_rt',
+                          deviceListenable: inputDevices,
+                        ),
+                        _PromptRow(
+                          label: 'Context',
+                          input: 'view',
+                          deviceListenable: inputDevices,
+                        ),
+                        _PromptRow(
+                          label: 'Settings',
+                          input: 'menu',
+                          deviceListenable: inputDevices,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ],

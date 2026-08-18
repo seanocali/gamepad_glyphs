@@ -66,7 +66,9 @@ String deviceFromHardwareIds(
     case 10462: // Valve
       return switch (productId) {
         4354 || 4418 => 'Steam (G1)',
-        _ => 'Steam (G2)', // Steam G2 ids, if ever needed: 4866 || 4868
+        _ => 'Steam (G2)',
+      // Steam G2 ids, if ever needed: 4866 || 4867 || 4868 || 4869
+      // Steamdeck PID is 4613
       };
     case 5426: // Razer
       return switch (productId) {
@@ -91,6 +93,10 @@ String deviceFromHardwareIds(
         || 10346 => 'Switch Pro',
         _ => 'Xbox One',
       };
+    case 53769: // Ultimarc // PIDs: 769, 1056, 1040
+    case 16: // Akishop // PIDs: 130
+    case 3090: // Brook // PIDs: 3120
+      return 'Arcade';
     default:
       return 'Xbox One';
   }
