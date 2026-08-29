@@ -39,5 +39,21 @@ TEST(GamepadGlyphsPlugin, GetPlatformVersion) {
   EXPECT_TRUE(result_string.rfind("Windows ", 0) == 0);
 }
 
+TEST(GamepadGlyphsPlugin, ControllerStateTreatsFirstSampleAsBaseline) {
+  ControllerInputState state;
+
+  EXPECT_FALSE(UpdateControllerInputState(&state, {1}, {0.04}));
+  EXPECT_FALSE(UpdateControllerInputState(&state, {0}, {0.0}));
+  EXPECT_TRUE(UpdateControllerInputState(&state, {1}, {0.0}));
+}
+
+TEST(GamepadGlyphsPlugin, ControllerStateAccumulatesAxisMovement) {
+  ControllerInputState state;
+
+  EXPECT_FALSE(UpdateControllerInputState(&state, {}, {0.0}));
+  EXPECT_FALSE(UpdateControllerInputState(&state, {}, {0.06}));
+  EXPECT_TRUE(UpdateControllerInputState(&state, {}, {0.11}));
+}
+
 }  // namespace test
 }  // namespace gamepad_glyphs

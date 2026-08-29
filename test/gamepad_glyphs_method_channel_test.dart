@@ -91,6 +91,10 @@ void main() {
       'My Controller',
     );
     expect(deviceFromHardwareIds(1118, 721), 'Xbox One');
+    expect(
+      deviceFromHardwareIds(null, null, inputKind: InputDeviceKind.gamepad),
+      'Xbox One',
+    );
   });
 
   test('maps known Xbox controller IDs to their device families', () {
@@ -104,19 +108,11 @@ void main() {
 
   test('maps mouse and touch input by their native category', () {
     expect(
-      deviceFromHardwareIds(
-        1133,
-        49274,
-        inputKind: InputDeviceKind.mouse,
-      ),
+      deviceFromHardwareIds(1133, 49274, inputKind: InputDeviceKind.mouse),
       'Mouse',
     );
     expect(
-      deviceFromHardwareIds(
-        null,
-        null,
-        inputKind: InputDeviceKind.touch,
-      ),
+      deviceFromHardwareIds(null, null, inputKind: InputDeviceKind.touch),
       'Touch',
     );
   });

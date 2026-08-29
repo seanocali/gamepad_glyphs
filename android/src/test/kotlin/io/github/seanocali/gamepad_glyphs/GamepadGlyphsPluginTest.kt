@@ -1,8 +1,11 @@
 package io.github.seanocali.gamepad_glyphs
 
+import android.view.InputDevice
 import io.flutter.plugin.common.MethodCall
 import io.flutter.plugin.common.MethodChannel
 import org.mockito.Mockito
+import kotlin.test.assertFalse
+import kotlin.test.assertTrue
 import kotlin.test.Test
 
 /*
@@ -23,5 +26,24 @@ internal class GamepadGlyphsPluginTest {
         plugin.onMethodCall(call, mockResult)
 
         Mockito.verify(mockResult).success("Android " + android.os.Build.VERSION.RELEASE)
+    }
+
+    @Test
+    fun controllerAxis_requiresMovementPastItsDeadZone() {
+        assertFalse(controllerAxisIsActive(-1f, 1f, 0.05f, 0.01f, 0f))
+        assertFalse(controllerAxisIsActive(-1f, 1f, 0.05f, 0.01f, 0.1f))
+        assertTrue(controllerAxisIsActive(-1f, 1f, 0.05f, 0.01f, 0.11f))
+    }
+
+    @Test
+    fun controllerTrigger_usesItsReleasedEndpointAsNeutral() {
+        assertFalse(controllerAxisIsActive(0f, 1f, 0f, 0f, 0.1f))
+        assertTrue(controllerAxisIsActive(0f, 1f, 0f, 0f, 0.11f))
+    }
+
+    @Test
+    fun gamepadButtonSource_isNotMistakenForKeyboard() {
+        assertTrue(sourceIncludes(InputDevice.SOURCE_GAMEPAD, InputDevice.SOURCE_GAMEPAD))
+        assertFalse(sourceIncludes(InputDevice.SOURCE_GAMEPAD, InputDevice.SOURCE_KEYBOARD))
     }
 }

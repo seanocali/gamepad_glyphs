@@ -45,6 +45,7 @@ class InputDeviceEvent {
 String deviceFromHardwareIds(
   int? vendorId,
   int? productId, {
+
   /// Native category of the device that produced the input.
   InputDeviceKind inputKind = InputDeviceKind.gamepad,
 
@@ -53,7 +54,9 @@ String deviceFromHardwareIds(
 }) {
   switch (inputKind) {
     case InputDeviceKind.mouse:
+      return 'Mouse';
     case InputDeviceKind.touch:
+      return 'Touch';
     case InputDeviceKind.keyboard:
       return 'Keyboard';
     case InputDeviceKind.gamepad:
@@ -65,7 +68,9 @@ String deviceFromHardwareIds(
       : additionalDevicesMap[vendorId]?[productId];
   if (customDevice != null) return customDevice;
 
-  if (vendorId == null) return 'Keyboard';
+  // Some platforms can identify controller activity without exposing USB
+  // hardware IDs. Use the generic controller artwork in that case.
+  if (vendorId == null) return 'Xbox One';
 
   switch (vendorId) {
     case 1118: // Microsoft
@@ -95,13 +100,12 @@ String deviceFromHardwareIds(
       return switch (productId) {
         4354 || 4418 => 'Steam (G1)',
         _ => 'Steam (G2)',
-      // Steam G2 ids, if ever needed: 4866 || 4867 || 4868 || 4869
-      // Steamdeck PID is 4613
+        // Steam G2 ids, if ever needed: 4866 || 4867 || 4868 || 4869
+        // Steamdeck PID is 4613
       };
     case 5426: // Razer
       return switch (productId) {
-        4103 || 4106 || 4107 || 4108 || 4100
-        || 4105 || 4352  => 'PS4',
+        4103 || 4106 || 4107 || 4108 || 4100 || 4105 || 4352 => 'PS4',
         _ => 'Xbox One',
       };
     case 12933: // Nacon
@@ -117,8 +121,7 @@ String deviceFromHardwareIds(
       };
     case 11720: // 8bitdo
       return switch (productId) {
-        24579 || 24585 || 24577 || 24578 || 10345
-        || 10346 => 'Switch Pro',
+        24579 || 24585 || 24577 || 24578 || 10345 || 10346 => 'Switch Pro',
         _ => 'Xbox One',
       };
     case 53769: // Ultimarc // PIDs: 769, 1056, 1040
@@ -168,16 +171,17 @@ class InputDeviceTracker extends ValueNotifier<String> {
   }) {
     this.vendorId = vendorId;
     this.productId = productId;
-    this.inputKind = inputKind ??
-        (vendorId == null
-            ? InputDeviceKind.keyboard
-            : InputDeviceKind.gamepad);
-    _updateValue(deviceFromHardwareIds(
-      vendorId,
-      productId,
-      inputKind: this.inputKind!,
-      additionalDevicesMap: _additionalDevicesMap,
-    ));
+    this.inputKind =
+        inputKind ??
+        (vendorId == null ? InputDeviceKind.keyboard : InputDeviceKind.gamepad);
+    _updateValue(
+      deviceFromHardwareIds(
+        vendorId,
+        productId,
+        inputKind: this.inputKind!,
+        additionalDevicesMap: _additionalDevicesMap,
+      ),
+    );
   }
 
   void _updateValue(String device) {

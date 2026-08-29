@@ -26,4 +26,10 @@ class RunnerTests: XCTestCase {
     waitForExpectations(timeout: 1)
   }
 
+  func testControllerValueRequiresMovementPastDeadZone() {
+    XCTAssertFalse(controllerValueMoved(from: 0, to: 0.1))
+    XCTAssertTrue(controllerValueMoved(from: 0, to: 0.11))
+    XCTAssertTrue(controllerValueMoved(from: 0, to: -0.11))
+  }
+
 }

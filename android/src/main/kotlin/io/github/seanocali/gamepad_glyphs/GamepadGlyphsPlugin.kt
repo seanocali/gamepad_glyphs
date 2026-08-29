@@ -13,6 +13,28 @@ import android.view.InputDevice
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import kotlin.math.abs
+
+internal fun sourceIncludes(source: Int, requiredSource: Int): Boolean =
+    (source and requiredSource) == requiredSource
+
+private fun isControllerSource(source: Int): Boolean =
+    sourceIncludes(source, InputDevice.SOURCE_GAMEPAD) ||
+        sourceIncludes(source, InputDevice.SOURCE_JOYSTICK) ||
+        sourceIncludes(source, InputDevice.SOURCE_DPAD)
+
+internal fun controllerAxisIsActive(
+    minimum: Float,
+    maximum: Float,
+    flat: Float,
+    fuzz: Float,
+    value: Float,
+): Boolean {
+    val neutral = if (minimum <= 0f && maximum >= 0f) 0f else minimum
+    val travel = maxOf(abs(maximum - neutral), abs(neutral - minimum))
+    val deadZone = maxOf(flat, fuzz, travel * 0.1f)
+    return abs(value - neutral) > deadZone
+}
 
 /** GamepadGlyphsPlugin */
 class GamepadGlyphsPlugin :
@@ -35,29 +57,37 @@ class GamepadGlyphsPlugin :
         override fun onKey(view: View, keyCode: Int, event: KeyEvent): Boolean {
             if (event.action != KeyEvent.ACTION_DOWN) return false
             val source = event.source
-            val keyboard = (source and InputDevice.SOURCE_KEYBOARD) != 0
-            val controller = source and (InputDevice.SOURCE_GAMEPAD or
-                InputDevice.SOURCE_JOYSTICK or InputDevice.SOURCE_DPAD)
-            val mouse = source and InputDevice.SOURCE_MOUSE
+            val keyboard = sourceIncludes(source, InputDevice.SOURCE_KEYBOARD)
+            val controller = isControllerSource(source)
+            val mouse = sourceIncludes(source, InputDevice.SOURCE_MOUSE)
             when {
                 keyboard -> emitInput(event.device, "keyboard")
-                controller != 0 -> emitInput(event.device, "gamepad")
-                detectMouse && mouse != 0 -> emitInput(event.device, "mouse")
+                controller -> emitInput(event.device, "gamepad")
+                detectMouse && mouse -> emitInput(event.device, "mouse")
             }
             return false
         }
 
         override fun onGenericMotion(view: View, event: MotionEvent): Boolean {
             val source = event.source
-            val controller = source and (InputDevice.SOURCE_GAMEPAD or
-                InputDevice.SOURCE_JOYSTICK or InputDevice.SOURCE_DPAD)
-            if (controller != 0 && event.action == MotionEvent.ACTION_MOVE) {
-                emitInput(event.device, "gamepad")
+            if (isControllerSource(source) &&
+                event.action == MotionEvent.ACTION_MOVE) {
+                val device = event.device
+                val active = device?.motionRanges?.any { range ->
+                    isControllerSource(range.source) && controllerAxisIsActive(
+                        range.min,
+                        range.max,
+                        range.flat,
+                        range.fuzz,
+                        event.getAxisValue(range.axis),
+                    )
+                } ?: false
+                if (active) emitInput(device, "gamepad")
                 return false
             }
 
-            val mouse = source and InputDevice.SOURCE_MOUSE
-            if (detectMouse && mouse != 0 && (event.action == MotionEvent.ACTION_MOVE ||
+            val mouse = sourceIncludes(source, InputDevice.SOURCE_MOUSE)
+            if (detectMouse && mouse && (event.action == MotionEvent.ACTION_MOVE ||
                     event.action == MotionEvent.ACTION_SCROLL ||
                     event.action == MotionEvent.ACTION_BUTTON_PRESS)) {
                 emitInput(event.device, "mouse")
@@ -67,8 +97,8 @@ class GamepadGlyphsPlugin :
     }
 
     private val touchListener = View.OnTouchListener { _, event ->
-        val touch = event.source and InputDevice.SOURCE_TOUCHSCREEN
-        if (detectTouch && touch != 0 && event.action == MotionEvent.ACTION_DOWN) {
+        val touch = sourceIncludes(event.source, InputDevice.SOURCE_TOUCHSCREEN)
+        if (detectTouch && touch && event.action == MotionEvent.ACTION_DOWN) {
             emitInput(event.device, "touch")
         }
         false

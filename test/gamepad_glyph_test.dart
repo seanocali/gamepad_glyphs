@@ -149,10 +149,17 @@ void main() {
     );
     await tester.pumpAndSettle();
 
-    expect(
-      find.byType(SvgPicture),
-      findsNWidgets(devices.length * inputs.length),
-    );
+    final loadedLabels = tester
+        .widgetList<SvgPicture>(find.byType(SvgPicture))
+        .map((glyph) => glyph.semanticsLabel)
+        .toSet();
+    final missingLabels = <String>[
+      for (final device in devices)
+        for (final input in inputs)
+          if (!loadedLabels.contains('$device $input input'))
+            '$device $input input',
+    ];
+    expect(missingLabels, isEmpty);
   });
 
   test('style folders match their parent filenames and inherit its map', () {

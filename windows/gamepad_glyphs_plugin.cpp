@@ -20,6 +20,7 @@
 #include <memory>
 #include <optional>
 #include <sstream>
+#include <unordered_set>
 #include <vector>
 
 namespace gamepad_glyphs {
@@ -70,6 +71,35 @@ class InputEventStreamHandler
 };
 
 }  // namespace
+
+bool UpdateControllerInputState(ControllerInputState* state,
+                                const std::vector<int>& controls,
+                                const std::vector<double>& axes,
+                                double axis_dead_zone) {
+  if (!state->initialized || state->controls.size() != controls.size() ||
+      state->axes.size() != axes.size()) {
+    state->initialized = true;
+    state->controls = controls;
+    state->axes = axes;
+    return false;
+  }
+
+  bool active = false;
+  for (size_t index = 0; index < controls.size(); ++index) {
+    if (controls[index] != 0 && controls[index] != state->controls[index]) {
+      active = true;
+    }
+  }
+  state->controls = controls;
+
+  for (size_t index = 0; index < axes.size(); ++index) {
+    if (std::abs(axes[index] - state->axes[index]) > axis_dead_zone) {
+      state->axes[index] = axes[index];
+      active = true;
+    }
+  }
+  return active;
+}
 
 // static
 void GamepadGlyphsPlugin::RegisterWithRegistrar(
@@ -163,6 +193,7 @@ void GamepadGlyphsPlugin::ClearInputEventSink() {
   input_event_sink_.reset();
   detect_mouse_ = false;
   detect_touch_ = false;
+  controller_states_.clear();
 }
 
 void GamepadGlyphsPlugin::EmitInputEvent(unsigned long vendor_id,
@@ -317,21 +348,31 @@ void GamepadGlyphsPlugin::PollGameControllers() {
   using namespace winrt::Windows::Gaming::Input;
 
   try {
+    std::unordered_set<std::wstring> connected_controllers;
+    bool emitted = false;
     for (const auto& raw_controller :
          RawGameController::RawGameControllers()) {
-      bool has_input = false;
+      const std::wstring controller_id(raw_controller.NonRoamableId());
+      connected_controllers.insert(controller_id);
+
+      std::vector<int> controls;
+      std::vector<double> axes;
 
       const auto gamepad = Gamepad::FromGameController(raw_controller);
       if (gamepad != nullptr) {
         const auto reading = gamepad.GetCurrentReading();
-        has_input =
-            reading.Buttons != GamepadButtons::None ||
-            reading.LeftTrigger > kGamepadAxisDeadZone ||
-            reading.RightTrigger > kGamepadAxisDeadZone ||
-            std::abs(reading.LeftThumbstickX) > kGamepadAxisDeadZone ||
-            std::abs(reading.LeftThumbstickY) > kGamepadAxisDeadZone ||
-            std::abs(reading.RightThumbstickX) > kGamepadAxisDeadZone ||
-            std::abs(reading.RightThumbstickY) > kGamepadAxisDeadZone;
+        const auto buttons = static_cast<std::uint32_t>(reading.Buttons);
+        for (std::uint32_t bit = 0; bit < 32; ++bit) {
+          controls.push_back((buttons & (1u << bit)) == 0 ? 0 : 1);
+        }
+        axes = {
+            reading.LeftTrigger,
+            reading.RightTrigger,
+            reading.LeftThumbstickX,
+            reading.LeftThumbstickY,
+            reading.RightThumbstickX,
+            reading.RightThumbstickY,
+        };
       } else {
         // This follows the original .NET InputPollingService: raw-only
         // controllers count pressed buttons and D-pad switches, but not raw
@@ -342,18 +383,29 @@ void GamepadGlyphsPlugin::PollGameControllers() {
         winrt::com_array<double> axes(raw_controller.AxisCount());
         raw_controller.GetCurrentReading(buttons, switches, axes);
 
-        has_input =
-            std::any_of(buttons.begin(), buttons.end(),
-                        [](bool pressed) { return pressed; }) ||
-            std::any_of(switches.begin(), switches.end(), [](auto position) {
-              return position != GameControllerSwitchPosition::Center;
-            });
+        for (bool pressed : buttons) controls.push_back(pressed ? 1 : 0);
+        for (auto position : switches) {
+          controls.push_back(
+              position == GameControllerSwitchPosition::Center
+                  ? 0
+                  : static_cast<int>(position) + 1);
+        }
       }
 
-      if (has_input) {
+      const bool has_input = UpdateControllerInputState(
+          &controller_states_[controller_id], controls, axes,
+          kGamepadAxisDeadZone);
+      if (has_input && !emitted) {
         EmitInputEvent(raw_controller.HardwareVendorId(),
                        raw_controller.HardwareProductId());
-        return;
+        emitted = true;
+      }
+    }
+    for (auto it = controller_states_.begin(); it != controller_states_.end();) {
+      if (connected_controllers.count(it->first) == 0) {
+        it = controller_states_.erase(it);
+      } else {
+        ++it;
       }
     }
   } catch (const winrt::hresult_error&) {

@@ -21,9 +21,7 @@ class _GamepadGlyphExampleAppState extends State<GamepadGlyphExampleApp> {
   void initState() {
     super.initState();
     _gamepadGlyphs = GamepadGlyphs(inputDevices: _inputDevices);
-    if (defaultTargetPlatform == TargetPlatform.windows) {
-      _gamepadGlyphs.startInputTracking();
-    }
+    _gamepadGlyphs.startInputTracking();
   }
 
   @override
@@ -323,7 +321,6 @@ class _PromptRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Row(
-      mainAxisSize: MainAxisSize.min,
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
@@ -334,9 +331,11 @@ class _PromptRow extends StatelessWidget {
             height: 50,
           ),
         ),
-        Text(
-          label,
-          style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+        Expanded(
+          child: Text(
+            label,
+            style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+          ),
         ),
       ],
     );

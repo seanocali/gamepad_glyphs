@@ -8,8 +8,22 @@
 
 #include <memory>
 #include <optional>
+#include <string>
+#include <unordered_map>
+#include <vector>
 
 namespace gamepad_glyphs {
+
+struct ControllerInputState {
+  bool initialized = false;
+  std::vector<int> controls;
+  std::vector<double> axes;
+};
+
+bool UpdateControllerInputState(ControllerInputState* state,
+                                const std::vector<int>& controls,
+                                const std::vector<double>& axes,
+                                double axis_dead_zone = 0.1);
 
 class GamepadGlyphsPlugin : public flutter::Plugin {
  public:
@@ -53,6 +67,7 @@ class GamepadGlyphsPlugin : public flutter::Plugin {
   bool mouse_input_registered_;
   bool detect_mouse_;
   bool detect_touch_;
+  std::unordered_map<std::wstring, ControllerInputState> controller_states_;
   std::unique_ptr<flutter::EventSink<flutter::EncodableValue>> input_event_sink_;
 };
 

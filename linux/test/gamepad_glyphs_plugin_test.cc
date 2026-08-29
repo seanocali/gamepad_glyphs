@@ -27,5 +27,12 @@ TEST(GamepadGlyphsPlugin, GetPlatformVersion) {
   EXPECT_THAT(fl_value_get_string(result), testing::StartsWith("Linux "));
 }
 
+TEST(GamepadGlyphsPlugin, ControllerAxisRequiresMovementPastDeadZone) {
+  EXPECT_FALSE(controller_axis_is_active(127, 127, 25));
+  EXPECT_FALSE(controller_axis_is_active(127, 152, 25));
+  EXPECT_TRUE(controller_axis_is_active(127, 153, 25));
+  EXPECT_TRUE(controller_axis_is_active(127, 101, 25));
+}
+
 }  // namespace test
 }  // namespace gamepad_glyphs

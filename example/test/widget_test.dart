@@ -5,15 +5,14 @@ import 'package:gamepad_glyphs_example/main.dart';
 
 void main() {
   testWidgets('shows the GamepadGlyph example', (WidgetTester tester) async {
+    await tester.binding.setSurfaceSize(const Size(1600, 1000));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+
     await tester.pumpWidget(const GamepadGlyphExampleApp());
-    expect(
-      find.textContaining('Alternate between keyboard input'),
-      findsOneWidget,
-    );
+    expect(find.text('Click to Simulate Input Device'), findsOneWidget);
     expect(find.text('Select Item'), findsOneWidget);
-    expect(find.text('Simulate Xbox 360 Gamepad Input'), findsOneWidget);
-    expect(find.text('Simulate PlayStation 5 DualSense Input'), findsOneWidget);
-    expect(find.text('Preferred style: '), findsOneWidget);
+    expect(find.text('Xbox 360'), findsOneWidget);
+    expect(find.text('DualSense (PS5)'), findsOneWidget);
     expect(find.text('Show Map'), findsOneWidget);
 
     expect(find.byType(ExcludeFocus), findsAtLeastNWidgets(2));

@@ -94,11 +94,19 @@ folders, so add the new style folder to the `flutter/assets` list in
 optional styles where the relevant hardware provides them; they are no longer a
 global rendering mode.
 
-The Windows implementation listens for raw keyboard and HID controller input,
-with XInput fallback detection for Xbox controllers. Linux listens to evdev
-input devices, macOS listens through IOKit HID events, and Android listens to
-Activity key and motion events. Other platforms currently retain the manual
-update API until their native input sources are implemented.
+Automatic input tracking is available on every supported platform. Windows
+uses Raw Input and Windows.Gaming.Input; Linux uses focused GTK keyboard and
+pointer events plus evdev joystick events; macOS uses IOKit HID; Android uses
+Activity key, motion, and touch events; iOS uses GameController plus app-local
+touch and pointer gestures; and web uses DOM events plus the browser Gamepad
+API.
+
+Some Apple devices and browsers report controller activity without USB vendor
+and product IDs. Those devices use the generic Xbox One artwork unless an ID
+is available. Linux joystick access follows the active desktop session's udev
+permissions and does not require access to protected keyboard device nodes.
+Controller connection/setup reports do not select a glyph device; controller
+activity begins with a button press or analog movement beyond its dead zone.
 
 To add or override hardware detection, provide VID/PID mappings when creating
 `GamepadGlyphs`. These are merged with the built-in mappings, and an exact
@@ -138,4 +146,3 @@ Android and/or iOS.
 For help getting started with Flutter development, view the
 [online documentation](https://docs.flutter.dev), which offers tutorials,
 samples, guidance on mobile development, and a full API reference.
-

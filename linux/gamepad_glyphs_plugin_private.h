@@ -8,3 +8,7 @@
 
 // Handles the getPlatformVersion method call.
 FlMethodResponse *get_platform_version();
+
+// Returns whether an absolute controller axis moved beyond its dead zone.
+bool controller_axis_is_active(int baseline_value, int current_value,
+                               int dead_zone);
