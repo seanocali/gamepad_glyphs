@@ -1,0 +1,4 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="White button with next-track icon">
+  <circle cx="128" cy="128" r="118" fill="white" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"/>
+  <path d="M140-240v-480l460 240-460 240ZM680-240v-480h120v480Z" fill="#000000" transform="translate(128 128) scale(0.15) translate(-470 480)"/>
+</svg>

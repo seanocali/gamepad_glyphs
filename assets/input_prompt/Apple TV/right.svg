@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 296 256" role="img" aria-label="Click wheel with right arrow">
+  <g fill="#2E2E2E" stroke="#1B1B1B" stroke-width="2" vector-effect="non-scaling-stroke">
+    <circle cx="128" cy="128" r="118"/>
+    <circle cx="128" cy="128" r="76"/>
+  </g>
+  <g>
+    <circle cx="128" cy="24" r="6" fill="#C8C8C8" />
+    <circle cx="128" cy="232" r="6" fill="#C8C8C8" />
+    <circle cx="24" cy="128" r="6" fill="#C8C8C8" />
+    <circle cx="232" cy="128" r="6" fill="#C8C8C8" />
+  </g>
+  <g transform="translate(138 54)">
+    <path fill="#BFBFBF" stroke="#000" stroke-width="3" d="M145 74l-23.8-24v48z"/>
+  </g>
+</svg>

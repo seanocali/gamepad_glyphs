@@ -7,13 +7,11 @@ export 'src/input_types.dart';
 class GamepadGlyphs {
   GamepadGlyphs({
     InputDeviceTracker? inputDevices,
-    Map<int, Map<int, String>> additionalDevicesMap = const {},
     bool detectMouse = false,
     bool detectTouch = false,
   }) : inputDevices =
            inputDevices ??
            InputDeviceTracker(
-             additionalDevicesMap: additionalDevicesMap,
              detectMouse: detectMouse,
              detectTouch: detectTouch,
            );

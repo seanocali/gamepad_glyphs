@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="Click wheel with right arrow">
+  <g fill="white" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke">
+    <circle cx="128" cy="128" r="118"/>
+    <circle cx="128" cy="128" r="42"/>
+  </g>
+  <g fill="currentColor" transform="translate(208 128) rotate(90) scale(7) translate(-12 -14)">
+    <path d="M7,15L12,10L17,15H7Z"/>
+  </g>
+</svg>

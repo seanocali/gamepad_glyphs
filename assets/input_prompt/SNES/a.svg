@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img">
+  <g fill="#514689" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke">
+    <circle cx="50" cy="50" r="40"/>
+<path fill="#FAFAFA" stroke="none" d="
+M 52.85 31.6
+L 47.05 31.6 33.25 63.45 41 63.45 43.65 56.7 56 56.7 58.75 63.45 66.7 63.45 52.85 31.6
+M 53.65 50.75
+L 45.85 50.75 49.75 40.85 53.65 50.75 Z"/>
+  </g>
+
+</svg>

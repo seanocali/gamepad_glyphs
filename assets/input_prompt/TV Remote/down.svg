@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="100%" height="100%">
+  <defs>
+
+    <!-- Keeps the same straight 45-degree channels between directional buttons. -->
+    <mask id="outer-ring-gaps">
+      <rect width="300" height="300" fill="white" />
+      <line x1="0" y1="0" x2="300" y2="300" stroke="black" stroke-width="10" />
+      <line x1="300" y1="0" x2="0" y2="300" stroke="black" stroke-width="10" />
+      <circle cx="150" cy="150" r="60" fill="white" />
+    </mask>
+  </defs>
+
+  <g id="dpad-navigation">
+    <!-- Each button is now its own path, so its fill can be changed independently. -->
+
+    <path id="button-up" fill="#202125" mask="url(#outer-ring-gaps)" d="
+      M 51.005051,51.005051
+      A 140,140 0 0,1 248.994949,51.005051
+      L 192.426407,107.573593
+      A 60,60 0 0,0 107.573593,107.573593
+      Z" />
+
+    <path id="button-right" fill="#202125" mask="url(#outer-ring-gaps)" d="
+      M 248.994949,51.005051
+      A 140,140 0 0,1 248.994949,248.994949
+      L 192.426407,192.426407
+      A 60,60 0 0,0 192.426407,107.573593
+      Z" />
+
+    <path id="button-down" fill="#CCCCCC" mask="url(#outer-ring-gaps)" d="
+      M 248.994949,248.994949
+      A 140,140 0 0,1 51.005051,248.994949
+      L 107.573593,192.426407
+      A 60,60 0 0,0 192.426407,192.426407
+      Z" />
+
+    <path id="button-left" fill="#202125" mask="url(#outer-ring-gaps)" d="
+      M 51.005051,248.994949
+      A 140,140 0 0,1 51.005051,51.005051
+      L 107.573593,107.573593
+      A 60,60 0 0,0 107.573593,192.426407
+      Z" />
+
+    <path id="button-ok" fill="#202125" d="
+      M 150,98
+      A 52,52 0 1,1 150,202
+      A 52,52 0 1,1 150,98
+      Z" />
+
+    <!-- Arrow Glyphs -->
+    <polygon fill="#FFFFFF" points="150,38 134,58 166,58" stroke="black" stroke-width="2"/>
+    <polygon fill="#FFFFFF" points="262,150 242,134 242,166" stroke="black" stroke-width="2"/>
+    <polygon fill="#FFFFFF" points="150,262 134,242 166,242" stroke="black" stroke-width="2"/>
+    <polygon fill="#FFFFFF" points="38,150 58,134 58,166" stroke="black" stroke-width="2"/>
+
+    <!-- Center Text -->
+    <text x="150" y="150" font-family="sans-serif" font-size="26" font-weight="700" fill="#FFFFFF" text-anchor="middle" dominant-baseline="central">OK</text>
+  </g>
+</svg>

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" role="img" aria-label="White button with rewind icon">
+  <circle cx="128" cy="128" r="118" fill="white" stroke="currentColor" stroke-width="2" vector-effect="non-scaling-stroke"/>
+  <g transform="translate(128 128) scale(2) translate(-51 -48)">
+    <path d="M74 30 L51 48 L74 66 Z" fill="#000000"/>
+    <path d="M51 30 L28 48 L51 66 Z" fill="#000000"/>
+  </g>
+</svg>

@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 100 100"
+   role="img"
+   aria-label="L shoulder button"
+   version="1.1"
+   id="svg11"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs8">
+    <linearGradient
+       id="body"
+       x1="0"
+       y1="0"
+       x2="0"
+       y2="1">
+      <stop
+         offset="0%"
+         stop-color="#dedde2"
+         id="stop1" />
+      <stop
+         offset="48%"
+         stop-color="#cfced4"
+         id="stop2" />
+      <stop
+         offset="78%"
+         stop-color="#c3c2c9"
+         id="stop3" />
+      <stop
+         offset="100%"
+         stop-color="#aaa9b0"
+         id="stop4" />
+    </linearGradient>
+    <linearGradient
+       id="bottomShade"
+       x1="0"
+       y1="0"
+       x2="0"
+       y2="1">
+      <stop
+         offset="0%"
+         stop-color="#8f8e96"
+         stop-opacity="0"
+         id="stop5" />
+      <stop
+         offset="100%"
+         stop-color="#85848c"
+         stop-opacity="0.55"
+         id="stop6" />
+    </linearGradient>
+    <linearGradient
+       id="topGlow"
+       x1="0"
+       y1="0"
+       x2="0"
+       y2="1">
+      <stop
+         offset="0%"
+         stop-color="#ffffff"
+         stop-opacity="0.72"
+         id="stop7" />
+      <stop
+         offset="100%"
+         stop-color="#ffffff"
+         stop-opacity="0"
+         id="stop8" />
+    </linearGradient>
+  </defs>
+  <title
+     id="title8">L shoulder button</title>
+  <clipPath
+     id="clip_l">
+    <path
+       d="M 15.988,37.000 H 84.013 Q 86.000,37.000 86.000,38.987 V 54.490 Q 86.000,63.500 76.990,63.500 H 23.010 Q 14.000,63.500 14.000,54.490 V 38.987 Q 14.000,37.000 15.988,37.000 Z"
+       id="path8" />
+  </clipPath>
+  <path
+     d="M 15.988,37.000 H 84.013 Q 86.000,37.000 86.000,38.987 V 54.490 Q 86.000,63.500 76.990,63.500 H 23.010 Q 14.000,63.500 14.000,54.490 V 38.987 Q 14.000,37.000 15.988,37.000 Z"
+     fill="url(#body)"
+     stroke="#99979f"
+     stroke-width="0.8"
+     stroke-linejoin="round"
+     id="path9" />
+  <g
+     clip-path="url(#clip_l)"
+     id="g10">
+    <rect
+       x="13.000"
+       y="56.080"
+       width="74.000"
+       height="8.480"
+       fill="url(#bottomShade)"
+       id="rect9" />
+    <rect
+       x="14.000"
+       y="37.000"
+       width="72.000"
+       height="6.095"
+       fill="url(#topGlow)"
+       opacity="0.38"
+       id="rect10" />
+  </g>
+  <path
+     d="M 16.385,38.590 H 83.615 Q 84.410,38.590 84.410,39.226"
+     fill="none"
+     stroke="#f0eff2"
+     stroke-opacity="0.70"
+     stroke-width="1.15"
+     stroke-linecap="round"
+     id="path10" />
+  <path
+     d="M 47.766068,54.320107 V 46.48048 h 1.062717 v 6.971648 h 3.961543 v 0.867979 z"
+     id="text10"
+     style="font-weight:500;font-size:11.395px;font-family:Arial, Helvetica, sans-serif;dominant-baseline:middle;text-anchor:middle;fill:#e5e4e8;fill-opacity:0.56"
+     transform="translate(0.38,0.52)"
+     aria-label="L" />
+  <path
+     d="M 47.766068,54.320107 V 46.48048 h 1.062717 v 6.971648 h 3.961543 v 0.867979 z"
+     id="text11"
+     style="font-weight:500;font-size:11.395px;font-family:Arial, Helvetica, sans-serif;dominant-baseline:middle;text-anchor:middle;fill:#96949c;stroke:#89878f;stroke-width:0.18;paint-order:stroke"
+     aria-label="L" />
+</svg>
