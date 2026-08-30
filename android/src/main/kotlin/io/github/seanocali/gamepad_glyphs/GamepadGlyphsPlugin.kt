@@ -18,10 +18,24 @@ import kotlin.math.abs
 internal fun sourceIncludes(source: Int, requiredSource: Int): Boolean =
     (source and requiredSource) == requiredSource
 
-private fun isControllerSource(source: Int): Boolean =
-    sourceIncludes(source, InputDevice.SOURCE_GAMEPAD) ||
-        sourceIncludes(source, InputDevice.SOURCE_JOYSTICK) ||
-        sourceIncludes(source, InputDevice.SOURCE_DPAD)
+private fun isGamepad(device: InputDevice?): Boolean =
+    device?.supportsSource(InputDevice.SOURCE_GAMEPAD) == true ||
+        device?.supportsSource(InputDevice.SOURCE_JOYSTICK) == true
+
+private fun inputKinds(source: Int, device: InputDevice?): List<String> {
+    val kinds = mutableListOf<String>()
+    if (sourceIncludes(source, InputDevice.SOURCE_KEYBOARD)) kinds += "keyboard"
+    if (isGamepad(device)) kinds += "gamepad"
+
+    val isHdmiRemote = sourceIncludes(source, InputDevice.SOURCE_HDMI)
+    val isPhysicalRemoteLike =
+        !isGamepad(device) &&
+            device?.supportsSource(InputDevice.SOURCE_DPAD) == true &&
+            device.keyboardType == InputDevice.KEYBOARD_TYPE_NON_ALPHABETIC
+    if (isHdmiRemote || isPhysicalRemoteLike) kinds += "remote"
+
+    return kinds
+}
 
 internal fun controllerAxisIsActive(
     minimum: Float,
@@ -57,24 +71,23 @@ class GamepadGlyphsPlugin :
         override fun onKey(view: View, keyCode: Int, event: KeyEvent): Boolean {
             if (event.action != KeyEvent.ACTION_DOWN) return false
             val source = event.source
-            val keyboard = sourceIncludes(source, InputDevice.SOURCE_KEYBOARD)
-            val controller = isControllerSource(source)
-            val mouse = sourceIncludes(source, InputDevice.SOURCE_MOUSE)
-            when {
-                keyboard -> emitInput(event.device, "keyboard")
-                controller -> emitInput(event.device, "gamepad")
-                detectMouse && mouse -> emitInput(event.device, "mouse")
+            val kinds = inputKinds(source, event.device).toMutableList()
+            if (detectMouse && sourceIncludes(source, InputDevice.SOURCE_MOUSE)) {
+                kinds += "mouse"
             }
+            if (kinds.isNotEmpty()) emitInput(event.device, kinds)
             return false
         }
 
         override fun onGenericMotion(view: View, event: MotionEvent): Boolean {
             val source = event.source
-            if (isControllerSource(source) &&
+            if (isGamepad(event.device) &&
                 event.action == MotionEvent.ACTION_MOVE) {
                 val device = event.device
                 val active = device?.motionRanges?.any { range ->
-                    isControllerSource(range.source) && controllerAxisIsActive(
+                    (sourceIncludes(range.source, InputDevice.SOURCE_GAMEPAD) ||
+                        sourceIncludes(range.source, InputDevice.SOURCE_JOYSTICK)) &&
+                        controllerAxisIsActive(
                         range.min,
                         range.max,
                         range.flat,
@@ -82,7 +95,7 @@ class GamepadGlyphsPlugin :
                         event.getAxisValue(range.axis),
                     )
                 } ?: false
-                if (active) emitInput(device, "gamepad")
+                if (active) emitInput(device, inputKinds(source, device))
                 return false
             }
 
@@ -90,7 +103,7 @@ class GamepadGlyphsPlugin :
             if (detectMouse && mouse && (event.action == MotionEvent.ACTION_MOVE ||
                     event.action == MotionEvent.ACTION_SCROLL ||
                     event.action == MotionEvent.ACTION_BUTTON_PRESS)) {
-                emitInput(event.device, "mouse")
+                emitInput(event.device, inputKinds(source, event.device) + "mouse")
             }
             return false
         }
@@ -99,7 +112,7 @@ class GamepadGlyphsPlugin :
     private val touchListener = View.OnTouchListener { _, event ->
         val touch = sourceIncludes(event.source, InputDevice.SOURCE_TOUCHSCREEN)
         if (detectTouch && touch && event.action == MotionEvent.ACTION_DOWN) {
-            emitInput(event.device, "touch")
+            emitInput(event.device, listOf("touch"))
         }
         false
     }
@@ -177,20 +190,20 @@ class GamepadGlyphsPlugin :
         view.setOnTouchListener(null)
     }
 
-    private fun emitInput(device: InputDevice?, kind: String) {
+    private fun emitInput(device: InputDevice?, kinds: List<String>) {
         val sink = eventSink ?: return
-        if (kind == "keyboard" || device == null || device.isVirtual) {
+        if (device == null || device.isVirtual) {
             sink.success(mapOf(
                 "vendorId" to null,
                 "productId" to null,
-                "kind" to kind,
+                "kinds" to kinds,
             ))
             return
         }
         sink.success(mapOf(
             "vendorId" to device.vendorId,
             "productId" to device.productId,
-            "kind" to kind,
+            "kinds" to kinds,
         ))
     }
 }

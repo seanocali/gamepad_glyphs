@@ -242,6 +242,7 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
               event.vendorId,
               event.productId,
               inputKind: event.kind,
+              productCategory: event.productCategory,
             );
           });
     }

@@ -3,31 +3,42 @@ import 'dart:async';
 import 'package:flutter/foundation.dart';
 
 /// The input-device category reported by the native event source.
-enum InputDeviceKind { keyboard, mouse, touch, gamepad }
+enum InputDeviceKind { keyboard, mouse, touch, remote, gamepad }
 
 /// A native input event used to update [InputDeviceTracker].
 class InputDeviceEvent {
   const InputDeviceEvent({
     this.vendorId,
     this.productId,
+    this.productCategory,
     this.kind = InputDeviceKind.gamepad,
   });
 
   final int? vendorId;
   final int? productId;
+  final String? productCategory;
   final InputDeviceKind kind;
 
   factory InputDeviceEvent.fromMap(Map<Object?, Object?> event) {
     final vendorId = event['vendorId'];
     final productId = event['productId'];
+    final rawKinds = event['kinds'];
+    final kinds = <String>{
+      if (rawKinds is Iterable) ...rawKinds.whereType<String>(),
+      if (rawKinds is! Iterable && event['kind'] is String)
+        event['kind'] as String,
+    };
+
     return InputDeviceEvent(
       vendorId: vendorId is num ? vendorId.toInt() : null,
       productId: productId is num ? productId.toInt() : null,
-      kind: switch (event['kind']) {
-        'keyboard' => InputDeviceKind.keyboard,
-        'mouse' => InputDeviceKind.mouse,
-        'touch' => InputDeviceKind.touch,
-        'gamepad' => InputDeviceKind.gamepad,
+      productCategory: event['productCategory'] as String?,
+      kind: switch (kinds) {
+        _ when kinds.contains('gamepad') => InputDeviceKind.gamepad,
+        _ when kinds.contains('remote') => InputDeviceKind.remote,
+        _ when kinds.contains('keyboard') => InputDeviceKind.keyboard,
+        _ when kinds.contains('mouse') => InputDeviceKind.mouse,
+        _ when kinds.contains('touch') => InputDeviceKind.touch,
         _ when vendorId == null => InputDeviceKind.keyboard,
         _ => InputDeviceKind.gamepad,
       },
@@ -37,7 +48,22 @@ class InputDeviceEvent {
   Map<String, Object?> toMap() => <String, Object?>{
     'vendorId': vendorId,
     'productId': productId,
+    'productCategory': productCategory,
     'kind': kind.name,
+  };
+}
+
+/// Converts Apple's Game Controller product category to an asset folder name.
+String deviceFromProductCategory(String productCategory) {
+  return switch (productCategory) {
+    'GCProductCategorySiriRemote1stGen' ||
+    'GCProductCategorySiriRemote2ndGen' => 'Apple TV',
+    'GCProductCategoryDualShock4' => 'PS4',
+    'GCProductCategoryDualSense' => 'PS5',
+    'GCProductCategoryXboxOne' => 'Xbox One',
+    'GCProductCategoryXboxSeriesX' => 'Xbox Series X-S',
+    'GCProductCategoryMFi' => 'Xbox One',
+    _ => '',
   };
 }
 
@@ -45,12 +71,7 @@ class InputDeviceEvent {
 String deviceFromHardwareIds(
   int? vendorId,
   int? productId, {
-
-  /// Native category of the device that produced the input.
-  InputDeviceKind inputKind = InputDeviceKind.gamepad,
-
-  /// Additional exact VID/PID mappings. These override built-in mappings.
-  Map<int, Map<int, String>> additionalDevicesMap = const {},
+  required InputDeviceKind inputKind,
 }) {
   switch (inputKind) {
     case InputDeviceKind.mouse:
@@ -59,14 +80,13 @@ String deviceFromHardwareIds(
       return 'Touch';
     case InputDeviceKind.keyboard:
       return 'Keyboard';
+    case InputDeviceKind.remote:
+      if (vendorId == 6353 && productId != null) return 'Google TV';
+      if (vendorId == 7439) return 'Fire TV';
+      return 'TV Remote';
     case InputDeviceKind.gamepad:
       break;
   }
-
-  final customDevice = vendorId == null || productId == null
-      ? null
-      : additionalDevicesMap[vendorId]?[productId];
-  if (customDevice != null) return customDevice;
 
   // Some platforms can identify controller activity without exposing USB
   // hardware IDs. Use the generic controller artwork in that case.
@@ -119,9 +139,15 @@ String deviceFromHardwareIds(
         193 || 146 => 'Switch Pro',
         _ => 'Xbox One',
       };
-    case 11720: // 8bitdo
+    case 11720: // 8BitDo
       return switch (productId) {
-        24579 || 24585 || 24577 || 24578 || 10345 || 10346 => 'Switch Pro',
+        24577 || 24578 => 'SNES',
+        24579 || 24585 || 10345 || 10346 => 'Switch Pro',
+        _ => 'Xbox One',
+      };
+    case 7439: // Amazon
+      return switch (productId) {
+        369 || 6473 => 'Luna',
         _ => 'Xbox One',
       };
     case 53769: // Ultimarc // PIDs: 769, 1056, 1040
@@ -137,13 +163,9 @@ String deviceFromHardwareIds(
 class InputDeviceTracker extends ValueNotifier<String> {
   InputDeviceTracker({
     String initial = 'Keyboard',
-
-    this._additionalDevicesMap = const {},
     this.detectMouse = false,
     this.detectTouch = false,
   }) : super(initial);
-
-  final Map<int, Map<int, String>> _additionalDevicesMap;
 
   /// Whether native mouse input should enter the hardware-ID event stream.
   final bool detectMouse;
@@ -168,19 +190,21 @@ class InputDeviceTracker extends ValueNotifier<String> {
     int? vendorId,
     int? productId, {
     InputDeviceKind? inputKind,
+    String? productCategory,
   }) {
     this.vendorId = vendorId;
     this.productId = productId;
     this.inputKind =
         inputKind ??
         (vendorId == null ? InputDeviceKind.keyboard : InputDeviceKind.gamepad);
+
+    if (productCategory != null) {
+      _updateValue(deviceFromProductCategory(productCategory));
+      return;
+    }
+
     _updateValue(
-      deviceFromHardwareIds(
-        vendorId,
-        productId,
-        inputKind: this.inputKind!,
-        additionalDevicesMap: _additionalDevicesMap,
-      ),
+      deviceFromHardwareIds(vendorId, productId, inputKind: this.inputKind!),
     );
   }
 
@@ -199,6 +223,7 @@ class InputDeviceTracker extends ValueNotifier<String> {
         event.vendorId,
         event.productId,
         inputKind: event.kind,
+        productCategory: event.productCategory,
       ),
     );
   }

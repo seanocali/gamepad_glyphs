@@ -84,6 +84,24 @@ void main() {
     expect(find.byType(SvgPicture), findsOneWidget);
   });
 
+  testWidgets('loads rt for every remote glyph profile', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: Wrap(
+          children: [
+            GamepadGlyph(input: 'rt', device: 'TV Remote'),
+            GamepadGlyph(input: 'rt', device: 'Apple TV'),
+            GamepadGlyph(input: 'rt', device: 'Google TV'),
+            GamepadGlyph(input: 'rt', device: 'Fire TV'),
+          ],
+        ),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byType(SvgPicture), findsNWidgets(4));
+  });
+
   testWidgets('maps Keyboard generic inputs to actual key assets', (
     tester,
   ) async {

@@ -66,6 +66,7 @@ void main() {
       'keyboard': InputDeviceKind.keyboard,
       'mouse': InputDeviceKind.mouse,
       'touch': InputDeviceKind.touch,
+      'remote': InputDeviceKind.remote,
       'gamepad': InputDeviceKind.gamepad,
     }.entries) {
       expect(
@@ -79,18 +80,21 @@ void main() {
     }
   });
 
-  test('additional device mappings override built-in mappings', () {
+  test('selects the highest-priority native kind', () {
     expect(
-      deviceFromHardwareIds(
-        1118,
-        721,
-        additionalDevicesMap: <int, Map<int, String>>{
-          1118: <int, String>{721: 'My Controller'},
-        },
-      ),
-      'My Controller',
+      InputDeviceEvent.fromMap(<String, Object>{
+        'vendorId': 1118,
+        'productId': 721,
+        'kinds': <String>['keyboard', 'gamepad'],
+      }).kind,
+      InputDeviceKind.gamepad,
     );
-    expect(deviceFromHardwareIds(1118, 721), 'Xbox One');
+    expect(
+      InputDeviceEvent.fromMap(<String, Object>{
+        'kinds': <String>['keyboard', 'remote'],
+      }).kind,
+      InputDeviceKind.remote,
+    );
     expect(
       deviceFromHardwareIds(null, null, inputKind: InputDeviceKind.gamepad),
       'Xbox One',
@@ -98,12 +102,21 @@ void main() {
   });
 
   test('maps known Xbox controller IDs to their device families', () {
-    expect(deviceFromHardwareIds(1118, 654), 'Xbox 360');
-    expect(deviceFromHardwareIds(1118, 721), 'Xbox One');
+    expect(
+      deviceFromHardwareIds(1118, 654, inputKind: InputDeviceKind.gamepad),
+      'Xbox 360',
+    );
+    expect(
+      deviceFromHardwareIds(1118, 721, inputKind: InputDeviceKind.gamepad),
+      'Xbox One',
+    );
   });
 
   test('maps the Arcade controller IDs to Arcade', () {
-    expect(deviceFromHardwareIds(3090, 3120), 'Arcade');
+    expect(
+      deviceFromHardwareIds(3090, 3120, inputKind: InputDeviceKind.gamepad),
+      'Arcade',
+    );
   });
 
   test('maps mouse and touch input by their native category', () {
@@ -114,6 +127,36 @@ void main() {
     expect(
       deviceFromHardwareIds(null, null, inputKind: InputDeviceKind.touch),
       'Touch',
+    );
+  });
+
+  test('maps remote and Apple product categories to remote glyph folders', () {
+    expect(
+      deviceFromHardwareIds(6353, 945, inputKind: InputDeviceKind.remote),
+      'Google TV',
+    );
+    expect(
+      deviceFromHardwareIds(7439, null, inputKind: InputDeviceKind.remote),
+      'Fire TV',
+    );
+    expect(
+      deviceFromHardwareIds(null, null, inputKind: InputDeviceKind.remote),
+      'TV Remote',
+    );
+    expect(
+      deviceFromProductCategory('GCProductCategorySiriRemote2ndGen'),
+      'Apple TV',
+    );
+  });
+
+  test('maps the recovered Luna and SNES hardware IDs', () {
+    expect(
+      deviceFromHardwareIds(7439, 369, inputKind: InputDeviceKind.gamepad),
+      'Luna',
+    );
+    expect(
+      deviceFromHardwareIds(11720, 24577, inputKind: InputDeviceKind.gamepad),
+      'SNES',
     );
   });
 }

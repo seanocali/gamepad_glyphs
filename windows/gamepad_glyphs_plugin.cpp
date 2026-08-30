@@ -380,8 +380,8 @@ void GamepadGlyphsPlugin::PollGameControllers() {
         winrt::com_array<bool> buttons(raw_controller.ButtonCount());
         winrt::com_array<GameControllerSwitchPosition> switches(
             raw_controller.SwitchCount());
-        winrt::com_array<double> axes(raw_controller.AxisCount());
-        raw_controller.GetCurrentReading(buttons, switches, axes);
+        winrt::com_array<double> raw_axes(raw_controller.AxisCount());
+        raw_controller.GetCurrentReading(buttons, switches, raw_axes);
 
         for (bool pressed : buttons) controls.push_back(pressed ? 1 : 0);
         for (auto position : switches) {

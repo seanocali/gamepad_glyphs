@@ -78,12 +78,16 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
     return nil
   }
 
-  private func emit(kind: String) {
-    eventSink?([
+  private func emit(kind: String, controller: GCController? = nil) {
+    var event: [String: Any] = [
       "vendorId": NSNull(),
       "productId": NSNull(),
       "kind": kind,
-    ])
+    ]
+    if #available(iOS 13.0, *), let controller {
+      event["productCategory"] = controller.productCategory
+    }
+    eventSink?(event)
   }
 
   private func startMonitoring() {
@@ -146,18 +150,18 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
   private func configure(_ controller: GCController) {
     if let gamepad = controller.extendedGamepad {
       prime(gamepad)
-      gamepad.valueChangedHandler = { [weak self] _, element in
-        self?.handleControllerElement(element)
+      gamepad.valueChangedHandler = { [weak self, weak controller] _, element in
+        self?.handleControllerElement(element, controller: controller)
       }
     } else if let gamepad = controller.microGamepad {
       prime(gamepad)
-      gamepad.valueChangedHandler = { [weak self] _, element in
-        self?.handleControllerElement(element)
+      gamepad.valueChangedHandler = { [weak self, weak controller] _, element in
+        self?.handleControllerElement(element, controller: controller)
       }
     } else if let gamepad = controller.gamepad {
       prime(gamepad)
-      gamepad.valueChangedHandler = { [weak self] _, element in
-        self?.handleControllerElement(element)
+      gamepad.valueChangedHandler = { [weak self, weak controller] _, element in
+        self?.handleControllerElement(element, controller: controller)
       }
     }
   }
@@ -203,7 +207,10 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
     return nil
   }
 
-  private func handleControllerElement(_ element: GCControllerElement) {
+  private func handleControllerElement(
+    _ element: GCControllerElement,
+    controller: GCController?
+  ) {
     guard let current = values(for: element) else { return }
     let identifier = ObjectIdentifier(element)
     guard let baseline = controllerElementValues[identifier],
@@ -219,7 +226,7 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
       }
       if controllerValueMoved(from: baseline[0], to: button.value) {
         controllerElementValues[identifier] = current
-        emit(kind: "gamepad")
+        emit(kind: "gamepad", controller: controller)
       }
       return
     }
@@ -228,7 +235,7 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
       controllerValueMoved(from: $0.0, to: $0.1)
     }) {
       controllerElementValues[identifier] = current
-      emit(kind: "gamepad")
+      emit(kind: "gamepad", controller: controller)
     }
   }
 
