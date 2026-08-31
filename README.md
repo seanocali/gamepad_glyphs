@@ -2,6 +2,11 @@
 
 Display keyboard and controller glyphs based on the last input device.
 
+Glyphs use a consistent 48×48 layout slot by default. Set `width` and `height`
+to customize the slot, or pass `null` to either property to use the asset's
+intrinsic dimension. The default `BoxFit.contain` preserves each glyph's
+aspect ratio within its slot.
+
 ## Initial usage
 
 The default output type is automatic. The glyphs share one internal input

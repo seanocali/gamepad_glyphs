@@ -62,6 +62,19 @@ void main() {
     expect(find.byType(SvgPicture), findsOneWidget);
   });
 
+  testWidgets('uses a consistent default glyph slot', (tester) async {
+    await tester.pumpWidget(
+      const MaterialApp(
+        home: GamepadGlyph(input: 'lb_rb', device: 'Xbox One'),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    final glyph = tester.widget<GamepadGlyph>(find.byType(GamepadGlyph));
+    expect(glyph.width, GamepadGlyph.defaultGlyphSize);
+    expect(glyph.height, GamepadGlyph.defaultGlyphSize);
+  });
+
   testWidgets('loads the Switch Pro face-button glyphs', (tester) async {
     await tester.pumpWidget(
       const MaterialApp(

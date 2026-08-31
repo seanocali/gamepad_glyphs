@@ -11,6 +11,7 @@ import '../gamepad_glyphs_platform_interface.dart';
 /// Displays the glyph for a generic input on the last-used device.
 class GamepadGlyph extends StatefulWidget {
   static const defaultAssetRoot = 'assets/input_prompt';
+  static const defaultGlyphSize = 48.0;
 
   const GamepadGlyph({
     super.key,
@@ -24,8 +25,8 @@ class GamepadGlyph extends StatefulWidget {
     this.assetRoot = defaultAssetRoot,
     this.reverseAxes = false,
     this.mappedKeyboardKey,
-    this.width,
-    this.height,
+    this.width = defaultGlyphSize,
+    this.height = defaultGlyphSize,
     this.fit = BoxFit.contain,
     this.alignment = Alignment.center,
   }) : assert(device == null || deviceListenable == null);
@@ -63,7 +64,15 @@ class GamepadGlyph extends StatefulWidget {
 
   final bool reverseAxes;
   final String? mappedKeyboardKey;
+
+  /// Width of the layout slot. Defaults to [defaultGlyphSize].
+  ///
+  /// Pass `null` to use the asset's intrinsic width.
   final double? width;
+
+  /// Height of the layout slot. Defaults to [defaultGlyphSize].
+  ///
+  /// Pass `null` to use the asset's intrinsic height.
   final double? height;
   final BoxFit fit;
   final Alignment alignment;
@@ -294,7 +303,21 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
         }
 
         if (glyph.path.toLowerCase().endsWith('.svg')) {
-          return SvgPicture.memory(
+          return _slot(
+            SvgPicture.memory(
+              glyph.bytes,
+              width: widget.width,
+              height: widget.height,
+              fit: widget.fit,
+              alignment: widget.alignment,
+              errorBuilder: (context, error, stackTrace) =>
+                  SizedBox(width: widget.width, height: widget.height),
+              semanticsLabel: '$currentDevice ${widget.input} input',
+            ),
+          );
+        }
+        return _slot(
+          Image.memory(
             glyph.bytes,
             width: widget.width,
             height: widget.height,
@@ -302,21 +325,18 @@ class _GamepadGlyphState extends State<GamepadGlyph> {
             alignment: widget.alignment,
             errorBuilder: (context, error, stackTrace) =>
                 SizedBox(width: widget.width, height: widget.height),
-            semanticsLabel: '$currentDevice ${widget.input} input',
-          );
-        }
-        return Image.memory(
-          glyph.bytes,
-          width: widget.width,
-          height: widget.height,
-          fit: widget.fit,
-          alignment: widget.alignment,
-          errorBuilder: (context, error, stackTrace) =>
-              SizedBox(width: widget.width, height: widget.height),
-          semanticLabel: '$currentDevice ${widget.input} input',
+            semanticLabel: '$currentDevice ${widget.input} input',
+          ),
         );
       },
     );
+  }
+
+  Widget _slot(Widget child) {
+    final width = widget.width;
+    final height = widget.height;
+    if (width == null || height == null) return child;
+    return SizedBox(width: width, height: height, child: child);
   }
 
   static Future<_LoadedGlyph?> _loadGlyph({

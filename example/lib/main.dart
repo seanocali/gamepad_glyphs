@@ -449,11 +449,11 @@ class _DemoContentState extends State<_DemoContent> {
       padding: const EdgeInsets.symmetric(vertical: 6, horizontal: 30),
       child: Row(
         children: [
-          GamepadGlyph(
-            input: input,
-            deviceListenable: inputDevices,
-            width: 60,
-            height: 60,
+          SizedBox.square(
+            dimension: 60,
+            child: Center(
+              child: GamepadGlyph(input: input, deviceListenable: inputDevices),
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -503,11 +503,14 @@ class _PromptRow extends StatelessWidget {
       children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 12),
-          child: GamepadGlyph(
-            input: input,
-            deviceListenable: deviceListenable,
-            width: 50,
-            height: 50,
+          child: SizedBox.square(
+            dimension: 50,
+            child: Center(
+              child: GamepadGlyph(
+                input: input,
+                deviceListenable: deviceListenable,
+              ),
+            ),
           ),
         ),
         Expanded(
