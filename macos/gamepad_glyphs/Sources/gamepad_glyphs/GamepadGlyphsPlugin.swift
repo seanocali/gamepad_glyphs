@@ -103,7 +103,7 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
     for device in devices { primeController(device) }
   }
 
-  private func primeController(_ device: IOHIDDevice) {
+fileprivate func primeController(_ device: IOHIDDevice) {
     let primaryUsagePage = propertyInt(device, key: kIOHIDPrimaryUsagePageKey)
     let primaryUsage = propertyInt(device, key: kIOHIDPrimaryUsageKey)
     guard primaryUsagePage == Int(kHIDPage_GenericDesktop) &&
@@ -125,17 +125,18 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
         controllerHIDUsages.contains(usage)
       guard button || axis else { continue }
 
-      var value: IOHIDValue?
-      guard IOHIDDeviceGetValue(device, element, &value) == kIOReturnSuccess,
-        let value else {
+      let valuePointer = UnsafeMutablePointer<Unmanaged<IOHIDValue>>.allocate(capacity: 1)
+      defer { valuePointer.deallocate() }
+      guard IOHIDDeviceGetValue(device, element, valuePointer) == kIOReturnSuccess else {
         continue
       }
+      let value = valuePointer.pointee.takeUnretainedValue()
       controllerElementValues[elementKey(device: device, element: element)] =
         IOHIDValueGetIntegerValue(value)
     }
   }
 
-  private func handleHIDValue(_ value: IOHIDValue) {
+  fileprivate func handleHIDValue(_ value: IOHIDValue) {
     let element = IOHIDValueGetElement(value)
     let usagePage = IOHIDElementGetUsagePage(element)
     let usage = IOHIDElementGetUsage(element)
@@ -237,13 +238,13 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
 }
 
 private let hidInputValueCallback: IOHIDValueCallback = { context, _, _, value in
-  guard let context, let value else { return }
+  guard let context else { return }
   let plugin = Unmanaged<GamepadGlyphsPlugin>.fromOpaque(context).takeUnretainedValue()
   plugin.handleHIDValue(value)
 }
 
 private let hidDeviceMatchedCallback: IOHIDDeviceCallback = { context, _, _, device in
-  guard let context, let device else { return }
+  guard let context else { return }
   let plugin = Unmanaged<GamepadGlyphsPlugin>.fromOpaque(context).takeUnretainedValue()
   plugin.primeController(device)
 }
