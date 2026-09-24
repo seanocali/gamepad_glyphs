@@ -27,13 +27,4 @@ class RunnerTests: XCTestCase {
     waitForExpectations(timeout: 1)
   }
 
-  func testControllerHIDValueRequiresMovementPastDeadZone() {
-    XCTAssertFalse(
-      controllerHIDValueMoved(from: 127, to: 139, minimum: 0, maximum: 255)
-    )
-    XCTAssertTrue(
-      controllerHIDValueMoved(from: 127, to: 140, minimum: 0, maximum: 255)
-    )
-  }
-
 }

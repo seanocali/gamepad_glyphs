@@ -21,9 +21,7 @@ class _GamepadGlyphExampleAppState extends State<GamepadGlyphExampleApp> {
   void initState() {
     super.initState();
     _gamepadGlyphs = GamepadGlyphs(inputDevices: _inputDevices);
-    if (defaultTargetPlatform == TargetPlatform.windows) {
-      _gamepadGlyphs.startInputTracking();
-    }
+    _gamepadGlyphs.startInputTracking();
   }
 
   @override

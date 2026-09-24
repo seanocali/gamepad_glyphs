@@ -6,7 +6,7 @@ import PackageDescription
 let package = Package(
     name: "gamepad_glyphs",
     platforms: [
-        .macOS("10.15")
+        .macOS("12.0")
     ],
     products: [
         .library(name: "gamepad-glyphs", targets: ["gamepad_glyphs"])
@@ -32,7 +32,7 @@ let package = Package(
                 // https://developer.apple.com/documentation/xcode/bundling-resources-with-a-swift-package
             ],
             linkerSettings: [
-                .linkedFramework("IOKit")
+                .linkedFramework("GameController")
             ]
         )
     ]

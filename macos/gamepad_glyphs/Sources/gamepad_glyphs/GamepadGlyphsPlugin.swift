@@ -1,62 +1,35 @@
 import Cocoa
 import FlutterMacOS
-import IOKit.hid
+import GameController
 
-private let controllerHIDUsages: Set<UInt32> = [
-  0x30, // X
-  0x31, // Y
-  0x32, // Z
-  0x33, // Rx
-  0x34, // Ry
-  0x35, // Rz
-  0x36, // Slider
-  0x37, // Dial
-  0x38, // Wheel
-  0x39, // Hat switch
-]
-
-func controllerHIDValueMoved(
-  from baseline: Int,
-  to current: Int,
-  minimum: Int,
-  maximum: Int
-) -> Bool {
-  let baselineValue = Int64(baseline)
-  let currentValue = Int64(current)
-  let travel = max(
-    abs(Int64(maximum) - baselineValue),
-    abs(baselineValue - Int64(minimum))
-  )
-  let deadZone = max(Int64(1), travel / 10)
-  return abs(currentValue - baselineValue) > deadZone
-}
-
-private struct HIDElementKey: Hashable {
-  let device: UInt64
-  let element: IOHIDElementCookie
-}
+private let controllerDeadZone: Float = 0.1
 
 public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler {
   private var eventSink: FlutterEventSink?
-  private var hidManager: IOHIDManager?
   private var detectMouse = false
   private var detectTouch = false
-  private var controllerElementValues: [HIDElementKey: Int] = [:]
+  private var localEventMonitor: Any?
+  private var controllerConnectObserver: NSObjectProtocol?
+  private var controllerDisconnectObserver: NSObjectProtocol?
+  private var controllerElementValues: [ObjectIdentifier: [Float]] = [:]
 
   deinit {
-    if let manager = hidManager {
-      IOHIDManagerUnscheduleFromRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
-      IOHIDManagerClose(manager, IOOptionBits(kIOHIDOptionsTypeNone))
-    }
+    stopControllerMonitoring()
+    stopLocalEventMonitoring()
   }
 
   public static func register(with registrar: FlutterPluginRegistrar) {
-    let channel = FlutterMethodChannel(name: "gamepad_glyphs", binaryMessenger: registrar.messenger)
-    let eventChannel = FlutterEventChannel(name: "gamepad_glyphs/input_events", binaryMessenger: registrar.messenger)
+    let channel = FlutterMethodChannel(
+      name: "gamepad_glyphs",
+      binaryMessenger: registrar.messenger
+    )
+    let eventChannel = FlutterEventChannel(
+      name: "gamepad_glyphs/input_events",
+      binaryMessenger: registrar.messenger
+    )
     let instance = GamepadGlyphsPlugin()
     registrar.addMethodCallDelegate(instance, channel: channel)
     eventChannel.setStreamHandler(instance)
-    instance.startHIDMonitoring()
   }
 
   public func handle(_ call: FlutterMethodCall, result: @escaping FlutterResult) {
@@ -68,12 +41,16 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
     }
   }
 
-  public func onListen(withArguments arguments: Any?, eventSink events: @escaping FlutterEventSink) -> FlutterError? {
+  public func onListen(
+    withArguments arguments: Any?,
+    eventSink events: @escaping FlutterEventSink
+  ) -> FlutterError? {
     let options = arguments as? [String: Any]
     detectMouse = options?["detectMouse"] as? Bool ?? false
     detectTouch = options?["detectTouch"] as? Bool ?? false
     eventSink = events
-    primeConnectedControllers()
+    startControllerMonitoring()
+    startLocalEventMonitoring()
     return nil
   }
 
@@ -81,170 +58,179 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
     eventSink = nil
     detectMouse = false
     detectTouch = false
+    stopControllerMonitoring()
+    stopLocalEventMonitoring()
     return nil
   }
 
-  private func startHIDMonitoring() {
-    let manager = IOHIDManagerCreate(kCFAllocatorDefault, IOOptionBits(kIOHIDOptionsTypeNone))
-    hidManager = manager
-    let context = UnsafeMutableRawPointer(Unmanaged.passUnretained(self).toOpaque())
-    IOHIDManagerRegisterDeviceMatchingCallback(manager, hidDeviceMatchedCallback, context)
-    IOHIDManagerRegisterInputValueCallback(manager, hidInputValueCallback, context)
-    IOHIDManagerScheduleWithRunLoop(manager, CFRunLoopGetMain(), CFRunLoopMode.defaultMode.rawValue)
-    IOHIDManagerOpen(manager, IOOptionBits(kIOHIDOptionsTypeNone))
-    primeConnectedControllers()
+  private func startControllerMonitoring() {
+    stopControllerMonitoring()
+    let center = NotificationCenter.default
+    controllerConnectObserver = center.addObserver(
+      forName: Notification.Name.GCControllerDidConnect,
+      object: nil,
+      queue: .main
+    ) { [weak self] notification in
+      guard let controller = notification.object as? GCController else { return }
+      self?.configure(controller)
+    }
+    controllerDisconnectObserver = center.addObserver(
+      forName: Notification.Name.GCControllerDidDisconnect,
+      object: nil,
+      queue: .main
+    ) { [weak self] notification in
+      guard let controller = notification.object as? GCController else { return }
+      self?.forget(controller)
+    }
+    GCController.controllers().forEach(configure)
   }
 
-  private func primeConnectedControllers() {
-    guard let manager = hidManager,
-      let devices = IOHIDManagerCopyDevices(manager) as? Set<IOHIDDevice> else {
-      return
+  private func stopControllerMonitoring() {
+    let center = NotificationCenter.default
+    if let observer = controllerConnectObserver { center.removeObserver(observer) }
+    if let observer = controllerDisconnectObserver { center.removeObserver(observer) }
+    controllerConnectObserver = nil
+    controllerDisconnectObserver = nil
+
+    for controller in GCController.controllers() {
+      controller.extendedGamepad?.valueChangedHandler = nil
+      controller.microGamepad?.valueChangedHandler = nil
     }
-    for device in devices { primeController(device) }
+    controllerElementValues.removeAll()
   }
 
-fileprivate func primeController(_ device: IOHIDDevice) {
-    let primaryUsagePage = propertyInt(device, key: kIOHIDPrimaryUsagePageKey)
-    let primaryUsage = propertyInt(device, key: kIOHIDPrimaryUsageKey)
-    guard primaryUsagePage == Int(kHIDPage_GenericDesktop) &&
-      (primaryUsage == Int(kHIDUsage_GD_GamePad) ||
-       primaryUsage == Int(kHIDUsage_GD_Joystick)),
-      let elements = IOHIDDeviceCopyMatchingElements(
-        device,
-        nil,
-        IOOptionBits(kIOHIDOptionsTypeNone)
-      ) as? [IOHIDElement] else {
-      return
-    }
-
-    for element in elements {
-      let usagePage = IOHIDElementGetUsagePage(element)
-      let usage = IOHIDElementGetUsage(element)
-      let button = usagePage == UInt32(kHIDPage_Button)
-      let axis = usagePage == UInt32(kHIDPage_GenericDesktop) &&
-        controllerHIDUsages.contains(usage)
-      guard button || axis else { continue }
-
-      let valuePointer = UnsafeMutablePointer<Unmanaged<IOHIDValue>>.allocate(capacity: 1)
-      defer { valuePointer.deallocate() }
-      guard IOHIDDeviceGetValue(device, element, valuePointer) == kIOReturnSuccess else {
-        continue
+  private func configure(_ controller: GCController) {
+    if let profile = controller.extendedGamepad {
+      prime(profile)
+      profile.valueChangedHandler = { [weak self, weak controller] _, element in
+        self?.handleControllerElement(element, controller: controller)
       }
-      let value = valuePointer.pointee.takeUnretainedValue()
-      controllerElementValues[elementKey(device: device, element: element)] =
-        IOHIDValueGetIntegerValue(value)
+    } else if let profile = controller.microGamepad {
+      prime(profile)
+      profile.valueChangedHandler = { [weak self, weak controller] _, element in
+        self?.handleControllerElement(element, controller: controller)
+      }
     }
   }
 
-  fileprivate func handleHIDValue(_ value: IOHIDValue) {
-    let element = IOHIDValueGetElement(value)
-    let usagePage = IOHIDElementGetUsagePage(element)
-    let usage = IOHIDElementGetUsage(element)
-    let integerValue = IOHIDValueGetIntegerValue(value)
+  private func profile(for controller: GCController) -> GCPhysicalInputProfile? {
+    if let profile = controller.extendedGamepad { return profile }
+    return controller.microGamepad
+  }
 
-    let keyboard = usagePage == UInt32(kHIDPage_KeyboardOrKeypad)
-    let device = IOHIDElementGetDevice(element)
-    let primaryUsagePage = propertyInt(device, key: kIOHIDPrimaryUsagePageKey)
-    let primaryUsage = propertyInt(device, key: kIOHIDPrimaryUsageKey)
-    let controller = primaryUsagePage == Int(kHIDPage_GenericDesktop) &&
-      (primaryUsage == Int(kHIDUsage_GD_GamePad) ||
-       primaryUsage == Int(kHIDUsage_GD_Joystick))
-    let mouse = primaryUsagePage == Int(kHIDPage_GenericDesktop) &&
-      primaryUsage == Int(kHIDUsage_GD_Mouse)
-    let touch = primaryUsagePage == 0x0D &&
-      (primaryUsage == 0x04 || primaryUsage == 0x05)
-    guard keyboard || controller || (detectMouse && mouse) ||
-      (detectTouch && touch) else { return }
-    let kind = keyboard ? "keyboard" : controller ? "gamepad" : mouse ? "mouse" : "touch"
+  private func forget(_ controller: GCController) {
+    guard let profile = profile(for: controller) else { return }
+    for element in profile.allElements {
+      controllerElementValues.removeValue(forKey: ObjectIdentifier(element))
+    }
+  }
 
-    if keyboard {
-      if integerValue != 0 {
-        eventSink?(["vendorId": NSNull(), "productId": NSNull(), "kind": kind])
+  private func prime(_ profile: GCPhysicalInputProfile) {
+    for element in profile.allElements {
+      if let values = values(for: element) {
+        controllerElementValues[ObjectIdentifier(element)] = values
+      }
+    }
+  }
+
+  private func values(for element: GCControllerElement) -> [Float]? {
+    if let button = element as? GCControllerButtonInput {
+      return [button.value]
+    }
+    if let axis = element as? GCControllerAxisInput {
+      return [axis.value]
+    }
+    if let pad = element as? GCControllerDirectionPad {
+      return [pad.xAxis.value, pad.yAxis.value]
+    }
+    return nil
+  }
+
+  private func handleControllerElement(
+    _ element: GCControllerElement,
+    controller: GCController?
+  ) {
+    guard let current = values(for: element) else { return }
+    let identifier = ObjectIdentifier(element)
+    guard let baseline = controllerElementValues[identifier],
+      baseline.count == current.count else {
+      controllerElementValues[identifier] = current
+      return
+    }
+
+    if let button = element as? GCControllerButtonInput {
+      controllerElementValues[identifier] = current
+      if button.value > controllerDeadZone && baseline[0] <= controllerDeadZone {
+        emitController(controller)
       }
       return
     }
 
-    if controller && !controllerElementIsActive(
-      device: device,
-      element: element,
-      usagePage: usagePage,
-      usage: usage,
-      value: integerValue
-    ) {
-      return
+    if zip(baseline, current).contains(where: {
+      abs($0.0 - $0.1) > controllerDeadZone
+    }) {
+      controllerElementValues[identifier] = current
+      emitController(controller)
+    }
+  }
+
+  private func emitController(_ controller: GCController?) {
+    var event: [String: Any] = [
+      "vendorId": NSNull(),
+      "productId": NSNull(),
+      "kind": "gamepad",
+    ]
+    if let controller {
+      event["productCategory"] = controller.productCategory
+    }
+    eventSink?(event)
+  }
+
+  private func startLocalEventMonitoring() {
+    stopLocalEventMonitoring()
+
+    var eventMask: NSEvent.EventTypeMask = [.keyDown]
+    if detectMouse {
+      eventMask.insert(.leftMouseDown)
+      eventMask.insert(.rightMouseDown)
+      eventMask.insert(.otherMouseDown)
+      eventMask.insert(.mouseMoved)
+      eventMask.insert(.scrollWheel)
+    }
+    if detectTouch {
+      eventMask.insert(.directTouch)
+      eventMask.insert(.gesture)
     }
 
-    let vendorId = propertyInt(device, key: kIOHIDVendorIDKey)
-    let productId = propertyInt(device, key: kIOHIDProductIDKey)
+    localEventMonitor = NSEvent.addLocalMonitorForEvents(matching: eventMask) {
+      [weak self] event in
+      switch event.type {
+      case .keyDown:
+        self?.emit(kind: "keyboard")
+      case .leftMouseDown, .rightMouseDown, .otherMouseDown,
+           .mouseMoved, .scrollWheel:
+        if self?.detectMouse == true { self?.emit(kind: "mouse") }
+      case .directTouch, .gesture:
+        if self?.detectTouch == true { self?.emit(kind: "touch") }
+      default:
+        break
+      }
+      return event
+    }
+  }
+
+  private func stopLocalEventMonitoring() {
+    if let monitor = localEventMonitor {
+      NSEvent.removeMonitor(monitor)
+      localEventMonitor = nil
+    }
+  }
+
+  private func emit(kind: String) {
     eventSink?([
-      "vendorId": vendorId.map { $0 as Any } ?? NSNull(),
-      "productId": productId.map { $0 as Any } ?? NSNull(),
+      "vendorId": NSNull(),
+      "productId": NSNull(),
       "kind": kind,
     ])
   }
-
-  private func controllerElementIsActive(
-    device: IOHIDDevice,
-    element: IOHIDElement,
-    usagePage: UInt32,
-    usage: UInt32,
-    value: Int
-  ) -> Bool {
-    let button = usagePage == UInt32(kHIDPage_Button)
-    let axis = usagePage == UInt32(kHIDPage_GenericDesktop) &&
-      controllerHIDUsages.contains(usage)
-    guard button || axis else { return false }
-
-    let key = elementKey(device: device, element: element)
-    guard let baseline = controllerElementValues[key] else {
-      controllerElementValues[key] = value
-      return false
-    }
-
-    if button {
-      controllerElementValues[key] = value
-      return value != 0 && baseline == 0
-    }
-
-    let active = controllerHIDValueMoved(
-      from: baseline,
-      to: value,
-      minimum: IOHIDElementGetLogicalMin(element),
-      maximum: IOHIDElementGetLogicalMax(element)
-    )
-    if active { controllerElementValues[key] = value }
-    return active
-  }
-
-  private func elementKey(
-    device: IOHIDDevice,
-    element: IOHIDElement
-  ) -> HIDElementKey {
-    HIDElementKey(
-      device: UInt64(IOHIDDeviceGetService(device)),
-      element: IOHIDElementGetCookie(element)
-    )
-  }
-
-  private func propertyInt(_ device: IOHIDDevice, key: String) -> Int? {
-    guard let value = IOHIDDeviceGetProperty(device, key as CFString) else { return nil }
-    var number: Int32 = 0
-    if CFGetTypeID(value) == CFNumberGetTypeID() {
-      CFNumberGetValue((value as! CFNumber), .sInt32Type, &number)
-      return Int(number)
-    }
-    return nil
-  }
-}
-
-private let hidInputValueCallback: IOHIDValueCallback = { context, _, _, value in
-  guard let context else { return }
-  let plugin = Unmanaged<GamepadGlyphsPlugin>.fromOpaque(context).takeUnretainedValue()
-  plugin.handleHIDValue(value)
-}
-
-private let hidDeviceMatchedCallback: IOHIDDeviceCallback = { context, _, _, device in
-  guard let context else { return }
-  let plugin = Unmanaged<GamepadGlyphsPlugin>.fromOpaque(context).takeUnretainedValue()
-  plugin.primeController(device)
 }
