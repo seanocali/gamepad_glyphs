@@ -57,12 +57,17 @@ class InputDeviceEvent {
 String deviceFromProductCategory(String productCategory) {
   return switch (productCategory) {
     'GCProductCategorySiriRemote1stGen' ||
-    'GCProductCategorySiriRemote2ndGen' => 'Apple TV',
-    'GCProductCategoryDualShock4' => 'PS4',
-    'GCProductCategoryDualSense' => 'PS5',
-    'GCProductCategoryXboxOne' => 'Xbox One',
-    'GCProductCategoryXboxSeriesX' => 'Xbox Series X-S',
-    'GCProductCategoryMFi' => 'Xbox One',
+    'GCProductCategorySiriRemote2ndGen' ||
+    'Siri Remote' ||
+    'Siri Remote (1st generation)' ||
+    'Siri Remote (2nd generation)' => 'Apple TV',
+    'GCProductCategoryDualShock4' || 'DualShock 4' => 'PS4',
+    'GCProductCategoryDualSense' || 'DualSense' => 'PS5',
+    'GCProductCategoryXboxOne' || 'Xbox One' => 'Xbox One',
+    'GCProductCategoryXboxSeriesX' ||
+    'Xbox Series X' ||
+    'Xbox Series X|S' => 'Xbox Series X-S',
+    'GCProductCategoryMFi' || 'MFi' => 'Xbox One',
     _ => '',
   };
 }

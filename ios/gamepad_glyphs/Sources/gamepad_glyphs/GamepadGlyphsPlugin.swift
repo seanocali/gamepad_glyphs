@@ -84,10 +84,26 @@ public class GamepadGlyphsPlugin: NSObject, FlutterPlugin, FlutterStreamHandler 
       "productId": NSNull(),
       "kind": kind,
     ]
-    if #available(iOS 13.0, *), let controller {
-      event["productCategory"] = controller.productCategory
+    if let controller {
+      event["productCategory"] = productCategory(for: controller)
+      event["vendorName"] = controller.vendorName ?? NSNull()
     }
     eventSink?(event)
+  }
+
+  private func productCategory(for controller: GCController) -> String {
+    if let profile = controller.extendedGamepad {
+      if profile is GCDualShockGamepad {
+        return GCProductCategoryDualShock4
+      }
+      if profile is GCDualSenseGamepad {
+        return GCProductCategoryDualSense
+      }
+      if profile is GCXboxGamepad {
+        return GCProductCategoryXboxOne
+      }
+    }
+    return controller.productCategory
   }
 
   private func startMonitoring() {

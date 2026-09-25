@@ -259,41 +259,48 @@ class _DemoContentState extends State<_DemoContent> {
                           width: 390,
                           child: Padding(
                             padding: const EdgeInsets.only(left: 30),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _PromptRow(
-                                  label: 'Change Selection',
-                                  input: 'ls_up_down',
-                                  deviceListenable: inputDevices,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.topLeft,
+                              child: SizedBox(
+                                width: 360,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _PromptRow(
+                                      label: 'Change Selection',
+                                      input: 'ls_up_down',
+                                      deviceListenable: inputDevices,
+                                    ),
+                                    _PromptRow(
+                                      label: 'Change Mode',
+                                      input: 'lb_rb',
+                                      deviceListenable: inputDevices,
+                                    ),
+                                    _PromptRow(
+                                      label: 'Help',
+                                      input: 'Y',
+                                      deviceListenable: inputDevices,
+                                    ),
+                                    _PromptRow(
+                                      label: 'More Info',
+                                      input: 'X',
+                                      deviceListenable: inputDevices,
+                                    ),
+                                    _PromptRow(
+                                      label: 'Go Back',
+                                      input: 'B',
+                                      deviceListenable: inputDevices,
+                                    ),
+                                    _PromptRow(
+                                      label: 'Select Item',
+                                      input: 'A',
+                                      deviceListenable: inputDevices,
+                                    ),
+                                  ],
                                 ),
-                                _PromptRow(
-                                  label: 'Change Mode',
-                                  input: 'lb_rb',
-                                  deviceListenable: inputDevices,
-                                ),
-                                _PromptRow(
-                                  label: 'Help',
-                                  input: 'Y',
-                                  deviceListenable: inputDevices,
-                                ),
-                                _PromptRow(
-                                  label: 'More Info',
-                                  input: 'X',
-                                  deviceListenable: inputDevices,
-                                ),
-                                _PromptRow(
-                                  label: 'Go Back',
-                                  input: 'B',
-                                  deviceListenable: inputDevices,
-                                ),
-                                _PromptRow(
-                                  label: 'Select Item',
-                                  input: 'A',
-                                  deviceListenable: inputDevices,
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),
@@ -301,41 +308,48 @@ class _DemoContentState extends State<_DemoContent> {
                           width: 390,
                           child: Padding(
                             padding: const EdgeInsets.only(left: 30),
-                            child: Column(
-                              mainAxisSize: MainAxisSize.min,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                _PromptRow(
-                                  label: 'Scroll',
-                                  input: 'rs_left_right',
-                                  deviceListenable: inputDevices,
+                            child: FittedBox(
+                              fit: BoxFit.scaleDown,
+                              alignment: Alignment.topLeft,
+                              child: SizedBox(
+                                width: 360,
+                                child: Column(
+                                  mainAxisSize: MainAxisSize.min,
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    _PromptRow(
+                                      label: 'Scroll',
+                                      input: 'rs_left_right',
+                                      deviceListenable: inputDevices,
+                                    ),
+                                    _PromptRow(
+                                      label: 'Skip',
+                                      input: 'rs_cw',
+                                      deviceListenable: inputDevices,
+                                    ),
+                                    _PromptRow(
+                                      label: 'Cycle',
+                                      input: 'dp',
+                                      deviceListenable: inputDevices,
+                                    ),
+                                    _PromptRow(
+                                      label: 'Jump',
+                                      input: 'lt_rt',
+                                      deviceListenable: inputDevices,
+                                    ),
+                                    _PromptRow(
+                                      label: 'Context',
+                                      input: 'view',
+                                      deviceListenable: inputDevices,
+                                    ),
+                                    _PromptRow(
+                                      label: 'Settings',
+                                      input: 'menu',
+                                      deviceListenable: inputDevices,
+                                    ),
+                                  ],
                                 ),
-                                _PromptRow(
-                                  label: 'Skip',
-                                  input: 'rs_cw',
-                                  deviceListenable: inputDevices,
-                                ),
-                                _PromptRow(
-                                  label: 'Cycle',
-                                  input: 'dp',
-                                  deviceListenable: inputDevices,
-                                ),
-                                _PromptRow(
-                                  label: 'Jump',
-                                  input: 'lt_rt',
-                                  deviceListenable: inputDevices,
-                                ),
-                                _PromptRow(
-                                  label: 'Context',
-                                  input: 'view',
-                                  deviceListenable: inputDevices,
-                                ),
-                                _PromptRow(
-                                  label: 'Settings',
-                                  input: 'menu',
-                                  deviceListenable: inputDevices,
-                                ),
-                              ],
+                              ),
                             ),
                           ),
                         ),

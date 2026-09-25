@@ -147,6 +147,11 @@ void main() {
       deviceFromProductCategory('GCProductCategorySiriRemote2ndGen'),
       'Apple TV',
     );
+    expect(
+      deviceFromProductCategory('GCProductCategoryDualShock4'),
+      'PS4',
+    );
+    expect(deviceFromProductCategory('DualShock 4'), 'PS4');
   });
 
   test('maps the recovered Luna and SNES hardware IDs', () {
